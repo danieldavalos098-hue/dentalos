@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DentalOS — Ficha del Paciente</title>
+  <!-- SEO & Social -->
+  <meta name="description" content="DentalOS — Ficha completa del paciente: datos, citas, historia clínica y pagos.">
+  <meta name="author" content="DentalOS">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="DentalOS — Ficha del Paciente">
+  <meta property="og:description" content="DentalOS — Ficha completa del paciente: datos, citas, historia clínica y pagos.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#5C7A6B">
+  <!-- Favicon inline SVG -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%235C7A6B"/><path d="M50 15C35 15 22 27 22 38c0 9 2.5 15 5 22l6 27c1.5 6 7 9 11 9s9.5-3 11-9l2-9 2 9c1.5 6 7 9 11 9s9.5-3 11-9l6-27c2.5-7 5-13 5-22 0-11-13-23-28-23z" fill="white"/></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Fraunces:ital,wght@0,300;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --sage: #5C7A6B;
+      --sage-light: #EBF1EE;
+      --sage-mid: #A8C4B8;
+      --ink: #1A1F1C;
+      --muted: #6B7570;
+      --surface: #F5F7F5;
+      --border: #E4EAE7;
+      --sidebar-w: 220px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--ink); min-height: 100vh; display: flex; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: var(--sidebar-w); background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top:0; left:0; bottom:0; z-index:50; transition: transform .25s ease; }
+    .sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .logo-icon { width:34px; height:34px; background:var(--sage); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .sidebar-nav { padding:12px 10px; flex:1; overflow-y:auto; }
+    .nav-section-label { font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#B0BDB7; padding:12px 10px 6px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:9px; font-size:13.5px; color:var(--muted); cursor:pointer; transition:background .15s,color .15s; text-decoration:none; margin-bottom:1px; }
+    .nav-item:hover { background:var(--surface); color:var(--ink); }
+    .nav-item.active { background:var(--sage-light); color:var(--sage); font-weight:500; }
+    .nav-item .icon { width:18px; height:18px; flex-shrink:0; opacity:.7; }
+    .nav-item.active .icon { opacity:1; }
+    .nav-badge { margin-left:auto; background:var(--sage); color:white; font-size:10px; font-weight:600; padding:1px 6px; border-radius:99px; }
+    .sidebar-bottom { padding:12px 10px; border-top:1px solid var(--border); }
+    .user-mini { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:9px; cursor:pointer; transition:background .15s; }
+    .user-mini:hover { background:var(--surface); }
+    .avatar-sm { width:32px; height:32px; border-radius:50%; background:var(--sage-light); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:var(--sage); flex-shrink:0; }
+
+    /* ── MAIN ── */
+    .main-wrapper { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; min-height:100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar { background:white; border-bottom:1px solid var(--border); height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 28px; position:sticky; top:0; z-index:40; }
+    .topbar-title { font-size:15px; font-weight:600; color:var(--ink); }
+    .topbar-avatar { width:34px; height:34px; border-radius:50%; background:var(--sage-light); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:var(--sage); }
+    .btn-logout { display:flex; align-items:center; gap:6px; padding:6px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:12.5px; color:var(--muted); cursor:pointer; background:white; transition:background .15s,border-color .15s,color .15s; font-family:'DM Sans',sans-serif; }
+    .btn-logout:hover { background:var(--surface); border-color:#C9D5CF; color:var(--ink); }
+
+    /* ── PAGE ── */
+    .page-content { padding:28px; flex:1; max-width:1080px; }
+
+    /* ── PATIENT HERO CARD ── */
+    .hero-card { background:white; border:1px solid var(--border); border-radius:16px; padding:24px 28px; margin-bottom:20px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+    .hero-avatar { width:64px; height:64px; border-radius:50%; background:var(--sage-light); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:600; color:var(--sage); flex-shrink:0; border:3px solid white; box-shadow:0 0 0 2px var(--sage-mid); }
+    .hero-info { flex:1; min-width:0; }
+    .hero-name { font-size:20px; font-weight:600; color:var(--ink); margin-bottom:4px; }
+    .hero-meta { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    .hero-chip { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted); }
+    .hero-chip svg { flex-shrink:0; }
+    .hero-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+    /* Buttons */
+    .btn-primary { display:inline-flex; align-items:center; gap:7px; padding:9px 18px; background:var(--sage); color:white; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:13.5px; font-weight:500; cursor:pointer; transition:background .2s,box-shadow .2s,transform .1s; box-shadow:0 4px 12px rgba(92,122,107,.28); white-space:nowrap; }
+    .btn-primary:hover { background:#4D6B5C; box-shadow:0 6px 20px rgba(92,122,107,.32); }
+    .btn-primary:active { transform:scale(.98); }
+    .btn-secondary { display:inline-flex; align-items:center; gap:7px; padding:8px 16px; background:white; color:var(--ink); border:1.5px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:13.5px; font-weight:500; cursor:pointer; transition:all .15s; white-space:nowrap; }
+    .btn-secondary:hover { border-color:var(--sage-mid); background:var(--sage-light); color:var(--sage); }
+    .btn-danger { display:inline-flex; align-items:center; gap:7px; padding:8px 16px; background:white; color:#C0392B; border:1.5px solid #F5C6C2; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:all .15s; white-space:nowrap; }
+    .btn-danger:hover { background:#FDF0EF; border-color:#E8948E; }
+
+    /* Status pill in hero */
+    .pill { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:99px; font-size:12px; font-weight:500; }
+    .pill-dot { width:5px; height:5px; border-radius:50%; }
+    .pill-green { background:#EBF5F0; color:#2E7D52; } .pill-green .pill-dot { background:#2E7D52; }
+    .pill-blue  { background:#EEF3FF; color:#3B5BDB; } .pill-blue .pill-dot  { background:#3B5BDB; }
+    .pill-amber { background:#FFF8EC; color:#B45309; } .pill-amber .pill-dot { background:#B45309; }
+    .pill-gray  { background:#F2F4F3; color:#6B7570; } .pill-gray .pill-dot  { background:#9BADA6; }
+    .pill-red   { background:#FDF0EF; color:#C0392B; } .pill-red .pill-dot   { background:#C0392B; }
+
+    /* ── TABS ── */
+    .tabs-bar { display:flex; align-items:center; gap:2px; background:white; border:1px solid var(--border); border-radius:12px; padding:5px; margin-bottom:20px; width:fit-content; }
+    .tab-btn { display:inline-flex; align-items:center; gap:7px; padding:8px 16px; border-radius:9px; font-size:13.5px; color:var(--muted); font-weight:400; cursor:pointer; transition:all .15s; border:none; background:none; font-family:'DM Sans',sans-serif; white-space:nowrap; }
+    .tab-btn:hover { color:var(--ink); background:var(--surface); }
+    .tab-btn.active { background:var(--sage); color:white; font-weight:500; box-shadow:0 2px 8px rgba(92,122,107,.25); }
+    .tab-btn .tab-count { font-size:10px; font-weight:600; padding:1px 6px; border-radius:99px; }
+    .tab-btn.active .tab-count { background:rgba(255,255,255,.25); color:white; }
+    .tab-btn:not(.active) .tab-count { background:#E4EAE7; color:#6B7570; }
+
+    /* Tab panels */
+    .tab-panel { display:none; animation:fadeIn .25s ease; }
+    .tab-panel.active { display:block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── CARDS ── */
+    .card { background:white; border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:16px; }
+    .card-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .card-title { font-size:13.5px; font-weight:600; color:var(--ink); }
+    .card-subtitle { font-size:12px; color:var(--muted); margin-top:1px; }
+    .card-body { padding:20px; }
+    .card-action { font-size:12.5px; color:var(--sage); cursor:pointer; font-weight:500; text-decoration:none; }
+    .card-action:hover { text-decoration:underline; }
+
+    /* ── DATA FIELDS GRID ── */
+    .fields-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:20px; }
+    .field-group { display:flex; flex-direction:column; gap:4px; }
+    .field-label { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:#B0BDB7; }
+    .field-value { font-size:14px; color:var(--ink); line-height:1.5; }
+    .field-value.empty { color:#C9D5CF; font-style:italic; font-size:13px; }
+    .field-value.mono { font-variant-numeric:tabular-nums; font-size:13.5px; }
+    .field-full { grid-column:1/-1; }
+
+    /* Allergy / obs tags */
+    .allergy-tag { display:inline-flex; align-items:center; gap:5px; background:#FDF0EF; color:#C0392B; border:1px solid #F5C6C2; border-radius:6px; padding:3px 8px; font-size:12px; font-weight:500; margin:2px; }
+    .obs-box { background:var(--surface); border-radius:10px; padding:12px 14px; font-size:13.5px; color:var(--ink); line-height:1.6; border:1px solid var(--border); }
+
+    /* ── TIMELINE ROWS (citas / historial) ── */
+    .list-row { display:grid; align-items:center; padding:14px 20px; border-bottom:1px solid #F0F4F2; transition:background .12s; cursor:pointer; font-size:13.5px; }
+    .list-row:last-child { border-bottom:none; }
+    .list-row:hover { background:var(--surface); }
+    .list-row.header { font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#B0BDB7; cursor:default; padding-bottom:10px; }
+    .list-row.header:hover { background:transparent; }
+
+    /* Citas columns */
+    .cols-citas { grid-template-columns:130px 1fr 130px 110px 80px; }
+    /* Historial columns */
+    .cols-historia { grid-template-columns:130px 120px 1fr 1fr 60px; }
+    /* Pagos columns */
+    .cols-pagos { grid-template-columns:120px 1fr 110px 110px 80px; }
+
+    .row-arrow { color:#C9D5CF; display:flex; justify-content:flex-end; }
+
+    /* Mini avatar for doctor */
+    .doc-chip { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted); }
+    .doc-dot { width:22px; height:22px; border-radius:50%; background:var(--sage-light); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:var(--sage); flex-shrink:0; }
+
+    /* Amount */
+    .amount-paid { color:#2E7D52; font-weight:600; }
+    .amount-pending { color:#B45309; font-weight:600; }
+
+    /* Empty state inside tab */
+    .tab-empty { padding:48px 24px; text-align:center; color:var(--muted); }
+    .tab-empty-icon { width:48px; height:48px; border-radius:14px; background:var(--sage-light); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; }
+    .tab-empty p { font-size:13px; margin-top:4px; }
+    .tab-empty strong { font-size:14.5px; color:var(--ink); }
+
+    /* Quick stats strip */
+    .stats-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border-bottom:1px solid var(--border); }
+    .strip-item { background:white; padding:16px 20px; display:flex; flex-direction:column; gap:2px; }
+    .strip-item:first-child { border-radius:0; }
+    .strip-value { font-size:20px; font-weight:600; color:var(--ink); }
+    .strip-label { font-size:11.5px; color:var(--muted); }
+
+    /* Sidebar toggle */
+    .sidebar-toggle { display:none; padding:6px; border:none; background:none; cursor:pointer; color:var(--muted); }
+    .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.3); z-index:45; }
+
+    /* Toast */
+    #toast { position:fixed; bottom:28px; right:28px; z-index:999; background:#1A1F1C; color:white; padding:12px 18px; border-radius:10px; font-size:13px; font-family:'DM Sans',sans-serif; display:none; align-items:center; gap:10px; box-shadow:0 8px 32px rgba(0,0,0,.18); }
+
+    @media(max-width:900px) {
+      .fields-grid { grid-template-columns:1fr; }
+      .cols-citas { grid-template-columns:110px 1fr 100px 80px; }
+      .cols-citas > :nth-child(2) { display:none; }
+      .cols-historia { grid-template-columns:110px 1fr 1fr 50px; }
+      .cols-historia > :nth-child(2) { display:none; }
+      .cols-pagos { grid-template-columns:100px 1fr 100px 70px; }
+      .cols-pagos > :nth-child(2) { display:none; }
+      .stats-strip { grid-template-columns:repeat(2,1fr); }
+      .hero-card { flex-direction:column; align-items:flex-start; }
+    }
+    @media(max-width:768px) {
+      .sidebar { transform:translateX(-100%); }
+      .sidebar.open { transform:translateX(0); }
+      .sidebar-overlay.show { display:block; }
+      .sidebar-toggle { display:flex; }
+      .main-wrapper { margin-left:0; }
+      .page-content { padding:16px; }
+      .tabs-bar { flex-wrap:wrap; width:100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8 2 5 5 5 8c0 2 .5 3.5 1 5l1.5 7c.3 1.2 1.4 2 2.5 2s2.2-.8 2.5-2l.5-2 .5 2c.3 1.2 1.4 2 2.5 2s2.2-.8 2.5-2L20 13c.5-1.5 1-3 1-5 0-3-3-6-9-6z" fill="white"/></svg>
+    </div>
+    <div>
+      <div style="font-size:14px;font-weight:600;color:#1A1F1C;line-height:1.2">DentalOS</div>
+      <div style="font-size:10px;color:#B0BDB7;letter-spacing:.04em">Clínica Dental</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="dashboard.html">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item active" href="pacientes.html">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Pacientes
+    </a>
+    <a class="nav-item" href="agenda.html">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Citas
+      <span class="nav-badge">8</span>
+    </a>
+    <a class="nav-item" href="pacientes.html">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Historia Clínica
+    </a>
+    <div class="nav-section-label">Finanzas</div>
+    <a class="nav-item" href="pacientes.html">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Pagos
+      <span class="nav-badge" style="background:#B45309">3</span>
+    </a>
+    <div class="nav-section-label">Sistema</div>
+    <a class="nav-item" href="#">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Configuración
+    </a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-mini">
+      <div class="avatar-sm">DR</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:500;color:#1A1F1C;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Dr. Rodríguez</div>
+        <div style="font-size:11px;color:#B0BDB7">Doctor</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main-wrapper">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <!-- Breadcrumb -->
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+        <a href="pacientes.html" style="color:var(--muted);text-decoration:none;transition:color .15s" onmouseenter="this.style.color='var(--sage)'" onmouseleave="this.style.color='var(--muted)'">Pacientes</a>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C9D5CF" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        <span id="breadcrumb-name" style="font-weight:600;color:var(--ink)">Cargando…</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="position:relative;cursor:pointer">
+        <div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:9px;transition:background .15s" onmouseenter="this.style.background='#F5F7F5'" onmouseleave="this.style.background='transparent'">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6B7570" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div style="position:absolute;top:6px;right:6px;width:7px;height:7px;background:#C0392B;border-radius:50%;border:1.5px solid white"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;border-left:1px solid #E4EAE7;padding-left:12px">
+        <div class="topbar-avatar">DR</div>
+        <div class="hidden sm:block" style="line-height:1.3">
+          <div style="font-size:13px;font-weight:500;color:#1A1F1C">Dr. Rodríguez</div>
+          <div style="font-size:11px;color:#B0BDB7">Doctor · Admin</div>
+        </div>
+        <button class="btn-logout" onclick="window.location.href='login.html'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span class="hidden sm:inline">Salir</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE CONTENT -->
+  <main class="page-content" style="animation:fadeIn .35s ease both">
+
+    <!-- ── HERO CARD ── -->
+    <div class="hero-card">
+      <div class="hero-avatar" id="hero-initials">LR</div>
+      <div class="hero-info">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+          <div class="hero-name" id="hero-name">Cargando…</div>
+          <span id="hero-status-pill"></span>
+        </div>
+        <div class="hero-meta">
+          <span class="hero-chip">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="hero-since">—</span>
+          </span>
+          <span class="hero-chip">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span id="hero-dni">—</span>
+          </span>
+          <span class="hero-chip">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span id="hero-phone">—</span>
+          </span>
+          <span class="hero-chip">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="hero-lastvisit">—</span>
+          </span>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <button class="btn-secondary" onclick="showToast('Abriendo editor de ficha…')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar
+        </button>
+        <button class="btn-primary" onclick="showToast('Abriendo agenda para nueva cita…')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+          Nueva cita
+        </button>
+      </div>
+    </div>
+
+    <!-- ── QUICK STATS STRIP ── -->
+    <div class="card" style="margin-bottom:20px;overflow:hidden">
+      <div class="stats-strip">
+        <div class="strip-item">
+          <div class="strip-value" id="stat-citas">—</div>
+          <div class="strip-label">Citas totales</div>
+        </div>
+        <div class="strip-item">
+          <div class="strip-value" id="stat-atenciones">—</div>
+          <div class="strip-label">Atenciones clínicas</div>
+        </div>
+        <div class="strip-item">
+          <div class="strip-value" style="color:#2E7D52" id="stat-cobrado">—</div>
+          <div class="strip-label">Cobrado total</div>
+        </div>
+        <div class="strip-item">
+          <div class="strip-value" style="color:#B45309" id="stat-pendiente">—</div>
+          <div class="strip-label">Pendiente de pago</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TABS ── -->
+    <div class="tabs-bar">
+      <button class="tab-btn active" id="tab-datos"    onclick="switchTab('datos')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Datos generales
+      </button>
+      <button class="tab-btn" id="tab-citas"    onclick="switchTab('citas')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Citas
+        <span class="tab-count">12</span>
+      </button>
+      <button class="tab-btn" id="tab-historia" onclick="switchTab('historia')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Historia clínica
+        <span class="tab-count">8</span>
+      </button>
+      <button class="tab-btn" id="tab-pagos"    onclick="switchTab('pagos')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Pagos
+        <span class="tab-count">9</span>
+      </button>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         TAB: DATOS GENERALES
+    ═══════════════════════════════════ -->
+    <div class="tab-panel active" id="panel-datos">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Información personal</div>
+            <div class="card-subtitle">Datos básicos del paciente</div>
+          </div>
+          <button class="btn-secondary" style="font-size:12.5px;padding:6px 14px" onclick="showToast('Editando datos…')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Editar
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="fields-grid">
+            <div class="field-group">
+              <div class="field-label">Nombre completo</div>
+              <div class="field-value" id="dg-nombre">—</div>
+            </div>
+            <div class="field-group">
+              <div class="field-label">DNI</div>
+              <div class="field-value mono" id="dg-dni">—</div>
+            </div>
+            <div class="field-group">
+              <div class="field-label">Fecha de nacimiento</div>
+              <div class="field-value" id="dg-nacimiento">—</div>
+            </div>
+            <div class="field-group">
+              <div class="field-label">Sexo</div>
+              <div class="field-value" id="dg-sexo">—</div>
+            </div>
+            <div class="field-group">
+              <div class="field-label">Teléfono</div>
+              <div class="field-value mono" id="dg-telefono">—</div>
+            </div>
+            <div class="field-group">
+              <div class="field-label">Correo electrónico</div>
+              <div class="field-value" id="dg-email">—</div>
+            </div>
+            <div class="field-group field-full">
+              <div class="field-label">Dirección</div>
+              <div class="field-value" id="dg-direccion">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Información clínica general</div>
+            <div class="card-subtitle">Alergias y observaciones médicas</div>
+          </div>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:20px">
+          <div class="field-group">
+            <div class="field-label">Alergias conocidas</div>
+            <div style="margin-top:6px" id="dg-alergias"></div>
+          </div>
+          <div class="field-group">
+            <div class="field-label">Observaciones generales</div>
+            <div class="obs-box" style="margin-top:6px" id="dg-observaciones">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="card" style="border-color:#F5C6C2">
+        <div class="card-header" style="border-color:#F5C6C2">
+          <div>
+            <div class="card-title" style="color:#C0392B">Zona de riesgo</div>
+            <div class="card-subtitle">Acciones irreversibles o de alto impacto</div>
+          </div>
+        </div>
+        <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:13.5px;font-weight:500;color:var(--ink)">Desactivar paciente</div>
+            <div style="font-size:12.5px;color:var(--muted);margin-top:2px">El paciente quedará inactivo y no aparecerá en búsquedas principales.</div>
+          </div>
+          <button class="btn-danger" onclick="showToast('Acción requiere confirmación…')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Desactivar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         TAB: CITAS
+    ═══════════════════════════════════ -->
+    <div class="tab-panel" id="panel-citas">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Historial de citas</div>
+            <div class="card-subtitle">12 citas registradas</div>
+          </div>
+          <button class="btn-primary" style="font-size:12.5px;padding:7px 14px" onclick="showToast('Abriendo agenda…')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva cita
+          </button>
+        </div>
+
+        <!-- Header row -->
+        <div class="list-row cols-citas header">
+          <div>Fecha</div>
+          <div>Doctor</div>
+          <div>Motivo</div>
+          <div>Estado</div>
+          <div></div>
+        </div>
+
+        <!-- Cita rows -->
+        <div id="citasBody"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         TAB: HISTORIA CLÍNICA
+    ═══════════════════════════════════ -->
+    <div class="tab-panel" id="panel-historia">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Historia clínica</div>
+            <div class="card-subtitle">8 registros · Ordenados por fecha descendente</div>
+          </div>
+          <button class="btn-primary" style="font-size:12.5px;padding:7px 14px" onclick="showToast('Abriendo formulario clínico…')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo registro
+          </button>
+        </div>
+
+        <div class="list-row cols-historia header">
+          <div>Fecha</div>
+          <div>Doctor</div>
+          <div>Diagnóstico</div>
+          <div>Tratamiento</div>
+          <div></div>
+        </div>
+
+        <div id="historiaBody"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         TAB: PAGOS
+    ═══════════════════════════════════ -->
+    <div class="tab-panel" id="panel-pagos">
+
+      <!-- Pagos summary -->
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border)">
+          <div style="background:white;padding:18px 22px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#B0BDB7;margin-bottom:6px">Total cobrado</div>
+            <div style="font-size:22px;font-weight:600;color:#2E7D52" id="pagos-cobrado">—</div>
+          </div>
+          <div style="background:white;padding:18px 22px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#B0BDB7;margin-bottom:6px">Pendiente</div>
+            <div style="font-size:22px;font-weight:600;color:#B45309" id="pagos-pendiente">—</div>
+          </div>
+          <div style="background:white;padding:18px 22px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#B0BDB7;margin-bottom:6px">Transacciones</div>
+            <div style="font-size:22px;font-weight:600;color:var(--ink)" id="pagos-total">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Registro de pagos</div>
+            <div class="card-subtitle">9 transacciones</div>
+          </div>
+          <button class="btn-primary" style="font-size:12.5px;padding:7px 14px" onclick="showToast('Abriendo formulario de pago…')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Registrar pago
+          </button>
+        </div>
+
+        <div class="list-row cols-pagos header">
+          <div>Fecha</div>
+          <div>Concepto</div>
+          <div>Método</div>
+          <div>Monto</div>
+          <div>Estado</div>
+        </div>
+
+        <div id="pagosBody"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="position:fixed;bottom:28px;right:28px;z-index:999;background:#1A1F1C;color:white;padding:12px 18px;border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;display:none;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A8C4B8" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+// ── data.js INLINE ────────────────────────────────────
+'use strict';
+function _uuid(){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16)});}
+function _clone(obj){return JSON.parse(JSON.stringify(obj));}
+function _toDateStr(date){return date.toISOString().split('T')[0];}
+const DB={usuarios:[{id:'usr-001',nombre:'Carlos Rodríguez',rol:'admin'},{id:'usr-002',nombre:'Laura Sánchez',rol:'doctor'},{id:'usr-003',nombre:'Rosa Mendoza',rol:'recepcionista'}],pacientes:[{id:'pac-001',nombre:'Ana',apellido:'García Torres',dni:'72341856',fechaNacimiento:'1990-06-15',sexo:'femenino',telefono:'987654321',email:'ana.garcia@gmail.com',direccion:'Jr. Los Rosales 245, Ica',alergias:'Ninguna conocida',observaciones:'',activo:true,createdAt:'2024-01-15',updatedAt:'2026-04-15'},{id:'pac-002',nombre:'Carlos',apellido:'Mendoza Paredes',dni:'48923715',fechaNacimiento:'1985-03-22',sexo:'masculino',telefono:'956321874',email:'carlos.m@hotmail.com',direccion:'Av. Los Álamos 890, Ica',alergias:'Ibuprofeno',observaciones:'Ansiedad dental.',activo:true,createdAt:'2024-02-10',updatedAt:'2026-04-14'},{id:'pac-003',nombre:'Lucía',apellido:'Ríos Vargas',dni:'61027384',fechaNacimiento:'1992-03-12',sexo:'femenino',telefono:'945112678',email:'lucia.rios@gmail.com',direccion:'Av. Los Álamos 342, Ica',alergias:'Penicilina, Ibuprofeno',observaciones:'Hipertensión controlada. Precaución con vasoconstrictores.',activo:true,createdAt:'2024-01-20',updatedAt:'2026-04-14'},{id:'pac-004',nombre:'Miguel',apellido:'Quispe Apaza',dni:'55839201',fechaNacimiento:'1998-11-05',sexo:'masculino',telefono:'998773442',email:'mquispe@outlook.com',direccion:'Calle Moquegua 120, Ica',alergias:'Ninguna conocida',observaciones:'',activo:true,createdAt:'2024-03-05',updatedAt:'2026-04-10'},{id:'pac-005',nombre:'Sofía',apellido:'Palma Castillo',dni:'79234516',fechaNacimiento:'1995-07-28',sexo:'femenino',telefono:'912445009',email:'sofia.palma@gmail.com',direccion:'Jr. Lima 567, Ica',alergias:'Ninguna conocida',observaciones:'Preferir mañanas.',activo:true,createdAt:'2024-04-01',updatedAt:'2026-04-08'},{id:'pac-006',nombre:'Roberto',apellido:'Flores Mamani',dni:'34561029',fechaNacimiento:'1978-12-01',sexo:'masculino',telefono:'976330215',email:'r.flores@gmail.com',direccion:'Av. San Martín 234, Ica',alergias:'Aspirina',observaciones:'Diabetes tipo 2.',activo:true,createdAt:'2024-02-20',updatedAt:'2026-04-05'},{id:'pac-016',nombre:'Gustavo',apellido:'Ramos Díaz',dni:'36490218',fechaNacimiento:'1975-02-14',sexo:'masculino',telefono:'918882467',email:'gramos@gmail.com',direccion:'Jr. Independencia 33, Ica',alergias:'Ninguna conocida',observaciones:'Inactivo.',activo:false,createdAt:'2023-08-01',updatedAt:'2025-11-30'}],citas:[{id:'cit-001',pacienteId:'pac-001',doctorId:'usr-001',fecha:'2026-04-19',horaInicio:'09:00',horaFin:'09:30',motivo:'Control mensual',estado:'confirmada',notasRecepcion:''},{id:'cit-002',pacienteId:'pac-003',doctorId:'usr-001',fecha:'2026-04-19',horaInicio:'10:00',horaFin:'11:00',motivo:'Revisión de brackets',estado:'en_sala',notasRecepcion:'Paciente en sala 1.'},{id:'cit-003',pacienteId:'pac-004',doctorId:'usr-001',fecha:'2026-04-19',horaInicio:'11:30',horaFin:'12:00',motivo:'Primera consulta',estado:'programada',notasRecepcion:''},{id:'cit-004',pacienteId:'pac-005',doctorId:'usr-001',fecha:'2026-04-19',horaInicio:'14:00',horaFin:'14:30',motivo:'Blanqueamiento dental',estado:'programada',notasRecepcion:''},{id:'cit-005',pacienteId:'pac-006',doctorId:'usr-001',fecha:'2026-04-19',horaInicio:'15:00',horaFin:'16:00',motivo:'Control post-operatorio',estado:'cancelada',notasRecepcion:'Canceló.'},{id:'cit-006',pacienteId:'pac-002',doctorId:'usr-001',fecha:'2026-04-14',horaInicio:'10:00',horaFin:'11:00',motivo:'Extracción molar',estado:'atendida',notasRecepcion:''},{id:'cit-007',pacienteId:'pac-003',doctorId:'usr-001',fecha:'2026-04-14',horaInicio:'11:30',horaFin:'12:00',motivo:'Ajuste de brackets',estado:'atendida',notasRecepcion:''},{id:'cit-009',pacienteId:'pac-001',doctorId:'usr-001',fecha:'2026-04-22',horaInicio:'09:00',horaFin:'09:30',motivo:'Revisión preventiva',estado:'programada',notasRecepcion:''},{id:'cit-010',pacienteId:'pac-003',doctorId:'usr-002',fecha:'2026-04-23',horaInicio:'10:30',horaFin:'11:00',motivo:'Control ortodoncia',estado:'programada',notasRecepcion:''}],historias:[{id:'hc-001',pacienteId:'pac-003',citaId:'cit-007',doctorId:'usr-001',fechaAtencion:'2026-04-14',motivoConsulta:'Ajuste mensual de brackets',diagnostico:'Progreso ortodóntico adecuado',tratamiento:'Ajuste de arco, cambio de ligaduras',medicamentos:'',proximaCitaSugerida:'2026-05-14',observaciones:'Usar hilo dental con enhebrador.'},{id:'hc-002',pacienteId:'pac-002',citaId:'cit-006',doctorId:'usr-001',fechaAtencion:'2026-04-14',motivoConsulta:'Dolor agudo en molar inferior',diagnostico:'Caries profunda con afectación pulpar en pieza 46',tratamiento:'Extracción del molar 46',medicamentos:'Amoxicilina 500mg c/8h x5d',proximaCitaSugerida:'2026-04-21',observaciones:'Revisión en 7 días.'},{id:'hc-003',pacienteId:'pac-001',citaId:null,doctorId:'usr-001',fechaAtencion:'2026-03-10',motivoConsulta:'Limpieza de rutina semestral',diagnostico:'Acumulación de sarro leve',tratamiento:'Profilaxis dental y pulido',medicamentos:'',proximaCitaSugerida:'2026-09-10',observaciones:'Técnica de Bass.'}],pagos:[{id:'pag-001',pacienteId:'pac-003',citaId:'cit-007',concepto:'Control ortodoncia abril',monto:80,metodoPago:'yape',estado:'pagado',fechaPago:'2026-04-14'},{id:'pag-002',pacienteId:'pac-002',citaId:'cit-006',concepto:'Extracción molar',monto:250,metodoPago:'tarjeta',estado:'pagado',fechaPago:'2026-04-14'},{id:'pag-003',pacienteId:'pac-001',citaId:null,concepto:'Limpieza dental',monto:120,metodoPago:'efectivo',estado:'pagado',fechaPago:'2026-03-10'},{id:'pag-004',pacienteId:'pac-001',citaId:'cit-001',concepto:'Control mensual',monto:60,metodoPago:'pendiente',estado:'pendiente',fechaPago:null},{id:'pag-005',pacienteId:'pac-003',citaId:'cit-002',concepto:'Revisión de brackets',monto:80,metodoPago:'pendiente',estado:'pendiente',fechaPago:null},{id:'pag-006',pacienteId:'pac-004',citaId:'cit-003',concepto:'Primera consulta',monto:40,metodoPago:'pendiente',estado:'pendiente',fechaPago:null}]};
+function _now(){return new Date().toISOString();}
+function _buildResponse(ok,data,error=null){return{ok,data:ok?data:null,error};}
+function _enrichPatient(p){p.nombreCompleto=`${p.nombre} ${p.apellido}`;if(p.fechaNacimiento){const hoy=new Date();const nac=new Date(p.fechaNacimiento);let e=hoy.getFullYear()-nac.getFullYear();const m=hoy.getMonth()-nac.getMonth();if(m<0||(m===0&&hoy.getDate()<nac.getDate()))e--;p.edad=e;}return p;}
+function _enrichAppointment(c){const pac=DB.pacientes.find(p=>p.id===c.pacienteId);const doc=DB.usuarios.find(u=>u.id===c.doctorId);c.pacienteNombre=pac?`${pac.nombre} ${pac.apellido}`:'Desconocido';c.doctorNombre=doc?doc.nombre:'Desconocido';return c;}
+function getPatientById(id){try{const p=DB.pacientes.find(p=>p.id===id);if(!p)throw new Error(`Paciente '${id}' no encontrado.`);return _buildResponse(true,_enrichPatient(_clone(p)));}catch(e){return _buildResponse(false,null,e.message);}}
+function getAppointmentsByPatient(pid){try{const r=_clone(DB.citas).filter(c=>c.pacienteId===pid).sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.horaInicio.localeCompare(a.horaInicio)).map(_enrichAppointment);return _buildResponse(true,r);}catch(e){return _buildResponse(false,null,e.message);}}
+function getClinicalRecordsByPatient(pid){try{const r=_clone(DB.historias).filter(h=>h.pacienteId===pid).sort((a,b)=>b.fechaAtencion.localeCompare(a.fechaAtencion)).map(h=>{const d=DB.usuarios.find(u=>u.id===h.doctorId);h.doctorNombre=d?d.nombre:'Desconocido';return h;});return _buildResponse(true,r);}catch(e){return _buildResponse(false,null,e.message);}}
+function getPaymentsByPatient(pid){try{const r=_clone(DB.pagos).filter(p=>p.pacienteId===pid).sort((a,b)=>(b.fechaPago||'').localeCompare(a.fechaPago||''));return _buildResponse(true,r);}catch(e){return _buildResponse(false,null,e.message);}}
+function changeAppointmentStatus(id,estado){try{const idx=DB.citas.findIndex(c=>c.id===id);if(idx===-1)throw new Error('No encontrada.');DB.citas[idx]={...DB.citas[idx],estado};return _buildResponse(true,_clone(DB.citas[idx]));}catch(e){return _buildResponse(false,null,e.message);}}
+const DentalOS={getPatientById,getAppointmentsByPatient,getClinicalRecordsByPatient,getPaymentsByPatient,changeAppointmentStatus,_db:DB};
+window.DentalOS=DentalOS;
+
+// ── HELPERS ───────────────────────────────────────────
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const [y, m, d] = dateStr.split('-');
+  const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+}
+function formatDateFull(dateStr) {
+  if (!dateStr) return '—';
+  const [y, m, d] = dateStr.split('-');
+  const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${parseInt(d)} de ${months[parseInt(m)-1]}, ${y}`;
+}
+function docInitials(name) {
+  return name.split(' ').filter(w => /^[A-ZÁÉÍÓÚÑ]/.test(w)).map(w=>w[0]).slice(0,2).join('');
+}
+
+// ── PILL RENDERERS ───────────────────────────────────
+function estadoPill(e) {
+  const map = {
+    atendida:  '<span class="pill pill-green"><span class="pill-dot"></span>Atendida</span>',
+    confirmada:'<span class="pill pill-green"><span class="pill-dot"></span>Confirmada</span>',
+    programada:'<span class="pill pill-blue"><span class="pill-dot"></span>Programada</span>',
+    en_sala:   '<span class="pill pill-amber"><span class="pill-dot"></span>En sala</span>',
+    cancelada: '<span class="pill pill-red"><span class="pill-dot"></span>Cancelada</span>',
+    no_asistio:'<span class="pill pill-gray"><span class="pill-dot"></span>No asistió</span>',
+  };
+  return map[e] || `<span class="pill pill-gray"><span class="pill-dot"></span>${e}</span>`;
+}
+function pagoPill(e) {
+  return e === 'pagado'
+    ? '<span class="pill pill-green"><span class="pill-dot"></span>Pagado</span>'
+    : '<span class="pill pill-amber"><span class="pill-dot"></span>Pendiente</span>';
+}
+function metodoBadge(m) {
+  const icons = { yape:'🟣', plin:'🔵', efectivo:'💵', tarjeta:'💳', transferencia:'🏦', pendiente:'⏳' };
+  const label = m ? m.charAt(0).toUpperCase() + m.slice(1) : '—';
+  return `<span style="font-size:13px;color:var(--muted)">${icons[m]||''} ${label}</span>`;
+}
+
+// ── LOAD & RENDER PATIENT ────────────────────────────
+function loadPatient(id) {
+  const res = DentalOS.getPatientById(id);
+  if (!res.ok) {
+    console.error('[ficha] getPatientById error:', res.error);
+    document.querySelector('.hero-card').innerHTML =
+      `<div style="padding:24px;color:#C0392B">Paciente no encontrado (ID: ${id}). <a href="pacientes.html" style="color:var(--sage)">← Volver</a></div>`;
+    return null;
+  }
+  return res.data;
+}
+
+function renderHero(p) {
+  // Initials for avatar
+  const initials = (p.nombre[0] + (p.apellido ? p.apellido[0] : '')).toUpperCase();
+
+  // Breadcrumb
+  document.getElementById('breadcrumb-name').textContent = p.nombreCompleto;
+
+  // Hero avatar + name
+  document.getElementById('hero-initials').textContent  = initials;
+  document.getElementById('hero-name').textContent      = p.nombreCompleto;
+  document.getElementById('hero-status-pill').innerHTML = p.activo
+    ? '<span class="pill pill-green"><span class="pill-dot"></span>Activa</span>'
+    : '<span class="pill pill-gray"><span class="pill-dot"></span>Inactiva</span>';
+
+  // Meta chips
+  document.getElementById('hero-dni').textContent      = `DNI ${p.dni}`;
+  document.getElementById('hero-phone').textContent    = p.telefono;
+  document.getElementById('hero-since').textContent    = `Paciente desde ${formatDate(p.createdAt ? p.createdAt.split('T')[0] : null)}`;
+  document.getElementById('hero-lastvisit').textContent= `Última visita: ${formatDate(p.updatedAt ? p.updatedAt.split('T')[0] : null)}`;
+}
+
+function renderDatosGenerales(p) {
+  function field(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || '—';
+  }
+  field('dg-nombre',    p.nombreCompleto);
+  field('dg-dni',       p.dni);
+  field('dg-nacimiento', p.fechaNacimiento ? `${formatDateFull(p.fechaNacimiento)} (${p.edad} años)` : '—');
+  field('dg-sexo',      p.sexo ? p.sexo.charAt(0).toUpperCase() + p.sexo.slice(1) : '—');
+  field('dg-telefono',  p.telefono);
+  field('dg-email',     p.email || '—');
+  field('dg-direccion', p.direccion || '—');
+
+  // Alergias
+  const alEl = document.getElementById('dg-alergias');
+  if (alEl) {
+    if (p.alergias && p.alergias.toLowerCase() !== 'ninguna conocida' && p.alergias.trim() !== '') {
+      alEl.innerHTML = p.alergias.split(',').map(a =>
+        `<span class="allergy-tag">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          ${a.trim()}
+        </span>`
+      ).join('');
+    } else {
+      alEl.innerHTML = '<span style="font-size:13px;color:#B0BDB7;font-style:italic">Ninguna conocida</span>';
+    }
+  }
+
+  // Observaciones
+  const obsEl = document.getElementById('dg-observaciones');
+  if (obsEl) {
+    obsEl.textContent = p.observaciones && p.observaciones.trim() !== ''
+      ? p.observaciones
+      : 'Sin observaciones registradas.';
+    obsEl.style.color = (p.observaciones && p.observaciones.trim()) ? 'var(--ink)' : '#B0BDB7';
+  }
+}
+
+function renderCitas(patientId) {
+  const res = DentalOS.getAppointmentsByPatient(patientId);
+  const citasBody = document.getElementById('citasBody');
+
+  if (!res.ok || res.data.length === 0) {
+    citasBody.innerHTML = `
+      <div class="tab-empty">
+        <div class="tab-empty-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5C7A6B" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <strong>Sin citas registradas</strong>
+        <p>Este paciente aún no tiene historial de citas.</p>
+      </div>`;
+    document.getElementById('tab-citas').querySelector('.tab-count').textContent = '0';
+    return;
+  }
+
+  const citas = res.data;
+  document.getElementById('tab-citas').querySelector('.tab-count').textContent = citas.length;
+  // Update card subtitle
+  const sub = document.querySelector('#panel-citas .card-subtitle');
+  if (sub) sub.textContent = `${citas.length} cita${citas.length!==1?'s':''} registrada${citas.length!==1?'s':''}`;
+
+  citasBody.innerHTML = '';
+  citas.forEach(c => {
+    const initials = docInitials(c.doctorNombre);
+    const dateLabel = c.fecha ? formatDate(c.fecha) : '—';
+    citasBody.innerHTML += `
+      <div class="list-row cols-citas" onclick="showToast('Cita del ${dateLabel}')">
+        <div>
+          <div style="font-size:13.5px;color:var(--ink);font-weight:500">${dateLabel}</div>
+          <div style="font-size:11.5px;color:var(--muted)">${c.horaInicio || ''}</div>
+        </div>
+        <div>
+          <div class="doc-chip">
+            <div class="doc-dot">${initials}</div>
+            <span>${c.doctorNombre}</span>
+          </div>
+        </div>
+        <div style="font-size:13.5px;color:var(--ink)">${c.motivo}</div>
+        <div>${estadoPill(c.estado)}</div>
+        <div class="row-arrow">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>`;
+  });
+}
+
+function renderHistoria(patientId) {
+  const res = DentalOS.getClinicalRecordsByPatient(patientId);
+  const historiaBody = document.getElementById('historiaBody');
+
+  if (!res.ok || res.data.length === 0) {
+    historiaBody.innerHTML = `
+      <div class="tab-empty">
+        <div class="tab-empty-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5C7A6B" stroke-width="1.6"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <strong>Sin historia clínica</strong>
+        <p>Aún no hay registros clínicos para este paciente.</p>
+      </div>`;
+    document.getElementById('tab-historia').querySelector('.tab-count').textContent = '0';
+    return;
+  }
+
+  const registros = res.data;
+  document.getElementById('tab-historia').querySelector('.tab-count').textContent = registros.length;
+  const sub = document.querySelector('#panel-historia .card-subtitle');
+  if (sub) sub.textContent = `${registros.length} registro${registros.length!==1?'s':''} · Ordenados por fecha descendente`;
+
+  historiaBody.innerHTML = '';
+  registros.forEach(h => {
+    const initials = docInitials(h.doctorNombre);
+    historiaBody.innerHTML += `
+      <div class="list-row cols-historia" onclick="showToast('Registro clínico del ${formatDate(h.fechaAtencion)}')">
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--ink)">${formatDate(h.fechaAtencion)}</div>
+        </div>
+        <div>
+          <div class="doc-chip">
+            <div class="doc-dot">${initials}</div>
+            <span style="font-size:12px">${h.doctorNombre.replace('Dr. ','').replace('Dra. ','')}</span>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--ink)">${h.diagnostico}</div>
+        <div style="font-size:13px;color:var(--muted)">${h.tratamiento}</div>
+        <div class="row-arrow">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>`;
+  });
+}
+
+function renderPagos(patientId) {
+  const res = DentalOS.getPaymentsByPatient(patientId);
+  const pagosBody = document.getElementById('pagosBody');
+
+  if (!res.ok || res.data.length === 0) {
+    pagosBody.innerHTML = `
+      <div class="tab-empty">
+        <div class="tab-empty-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5C7A6B" stroke-width="1.6"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <strong>Sin pagos registrados</strong>
+        <p>Este paciente no tiene transacciones.</p>
+      </div>`;
+    document.getElementById('tab-pagos').querySelector('.tab-count').textContent = '0';
+    return;
+  }
+
+  const pagos = res.data;
+  document.getElementById('tab-pagos').querySelector('.tab-count').textContent = pagos.length;
+
+  // Totals
+  const cobrado  = pagos.filter(p=>p.estado==='pagado').reduce((s,p)=>s+p.monto, 0);
+  const pendiente= pagos.filter(p=>p.estado==='pendiente').reduce((s,p)=>s+p.monto, 0);
+  const elCobrado  = document.getElementById('pagos-cobrado');
+  const elPendiente= document.getElementById('pagos-pendiente');
+  const elTotal    = document.getElementById('pagos-total');
+  if (elCobrado)   elCobrado.textContent   = `S/ ${cobrado.toFixed(2)}`;
+  if (elPendiente) elPendiente.textContent = `S/ ${pendiente.toFixed(2)}`;
+  if (elTotal)     elTotal.textContent     = pagos.length;
+
+  const sub = document.querySelector('#panel-pagos .card .card-subtitle');
+  if (sub) sub.textContent = `${pagos.length} transacción${pagos.length!==1?'es':''}`;
+
+  pagosBody.innerHTML = '';
+  pagos.forEach(p => {
+    const cls = p.estado === 'pagado' ? 'amount-paid' : 'amount-pending';
+    pagosBody.innerHTML += `
+      <div class="list-row cols-pagos" onclick="showToast('Pago: ${p.concepto}')">
+        <div style="font-size:13px;color:var(--ink);font-weight:500">${formatDate(p.fechaPago) || '—'}</div>
+        <div style="font-size:13px;color:var(--ink)">${p.concepto}</div>
+        <div>${metodoBadge(p.metodoPago)}</div>
+        <div class="${cls}" style="font-size:14px">S/ ${p.monto.toFixed(2)}</div>
+        <div>${pagoPill(p.estado)}</div>
+      </div>`;
+  });
+}
+
+function renderStats(patientId) {
+  const cRes  = DentalOS.getAppointmentsByPatient(patientId);
+  const hRes  = DentalOS.getClinicalRecordsByPatient(patientId);
+  const pRes  = DentalOS.getPaymentsByPatient(patientId);
+
+  const citas    = cRes.ok  ? cRes.data  : [];
+  const historia = hRes.ok  ? hRes.data  : [];
+  const pagos    = pRes.ok  ? pRes.data  : [];
+
+  const cobrado  = pagos.filter(p=>p.estado==='pagado').reduce((s,p)=>s+p.monto,0);
+  const pendiente= pagos.filter(p=>p.estado==='pendiente').reduce((s,p)=>s+p.monto,0);
+
+  function set(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
+  set('stat-citas',    citas.length);
+  set('stat-atenciones', historia.length);
+  set('stat-cobrado',  `S/ ${cobrado.toFixed(2)}`);
+  set('stat-pendiente',`S/ ${pendiente.toFixed(2)}`);
+}
+
+// ── TABS ─────────────────────────────────────────────
+function switchTab(name) {
+  ['datos','citas','historia','pagos'].forEach(t => {
+    document.getElementById('tab-'+t).classList.remove('active');
+    document.getElementById('panel-'+t).classList.remove('active');
+  });
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+// ── UTILS ─────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.style.display = 'flex';
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.style.display='none', 2800);
+}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+
+// ── INIT ─────────────────────────────────────────────
+(function init() {
+  // Read ?id= from URL
+  const params = new URLSearchParams(window.location.search);
+  const patientId = params.get('id') || 'pac-003'; // fallback for direct open
+
+  const patient = loadPatient(patientId);
+  if (!patient) return;
+
+  renderHero(patient);
+  renderDatosGenerales(patient);
+  renderCitas(patientId);
+  renderHistoria(patientId);
+  renderPagos(patientId);
+  renderStats(patientId);
+})();
+</script>
+</body>
+</html>

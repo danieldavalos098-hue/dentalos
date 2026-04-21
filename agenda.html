@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DentalOS — Agenda de Citas</title>
+  <!-- SEO & Social -->
+  <meta name="description" content="DentalOS — Agenda semanal de citas de tu clínica dental.">
+  <meta name="author" content="DentalOS">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="DentalOS — Agenda de Citas">
+  <meta property="og:description" content="DentalOS — Agenda semanal de citas de tu clínica dental.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#5C7A6B">
+  <!-- Favicon inline SVG -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%235C7A6B"/><path d="M50 15C35 15 22 27 22 38c0 9 2.5 15 5 22l6 27c1.5 6 7 9 11 9s9.5-3 11-9l2-9 2 9c1.5 6 7 9 11 9s9.5-3 11-9l6-27c2.5-7 5-13 5-22 0-11-13-23-28-23z" fill="white"/></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Fraunces:ital,wght@0,300;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --sage:        #5C7A6B;
+      --sage-light:  #EBF1EE;
+      --sage-mid:    #A8C4B8;
+      --ink:         #1A1F1C;
+      --muted:       #6B7570;
+      --surface:     #F5F7F5;
+      --border:      #E4EAE7;
+      --sidebar-w:   220px;
+
+      /* status colours */
+      --c-confirmed:  #2E7D52;  --bg-confirmed:  #EBF5F0;  --bd-confirmed: #B7DFCA;
+      --c-pending:    #B45309;  --bg-pending:    #FFF8EC;  --bd-pending:   #F0D18C;
+      --c-cancelled:  #C0392B;  --bg-cancelled:  #FDF0EF;  --bd-cancelled: #F5C6C2;
+      --c-inroom:     #2952CC;  --bg-inroom:     #EEF3FF;  --bd-inroom:    #C5D2F6;
+
+      --hour-h: 72px;   /* height per hour slot */
+      --time-col: 56px; /* left time gutter */
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family:'DM Sans',sans-serif; background:var(--surface); color:var(--ink); min-height:100vh; display:flex; overflow-x:hidden; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width:var(--sidebar-w); background:white; border-right:1px solid var(--border); display:flex; flex-direction:column; position:fixed; top:0;left:0;bottom:0; z-index:50; transition:transform .25s ease; }
+    .sidebar-logo { padding:20px 20px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .logo-icon { width:34px;height:34px; background:var(--sage); border-radius:10px; display:flex;align-items:center;justify-content:center; flex-shrink:0; }
+    .sidebar-nav { padding:12px 10px; flex:1; overflow-y:auto; }
+    .nav-section-label { font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#B0BDB7;padding:12px 10px 6px; }
+    .nav-item { display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;font-size:13.5px;color:var(--muted);cursor:pointer;transition:background .15s,color .15s;text-decoration:none;margin-bottom:1px; }
+    .nav-item:hover { background:var(--surface);color:var(--ink); }
+    .nav-item.active { background:var(--sage-light);color:var(--sage);font-weight:500; }
+    .nav-item .icon { width:18px;height:18px;flex-shrink:0;opacity:.7; }
+    .nav-item.active .icon { opacity:1; }
+    .nav-badge { margin-left:auto;background:var(--sage);color:white;font-size:10px;font-weight:600;padding:1px 6px;border-radius:99px; }
+    .sidebar-bottom { padding:12px 10px;border-top:1px solid var(--border); }
+    .user-mini { display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;transition:background .15s; }
+    .user-mini:hover { background:var(--surface); }
+    .avatar-sm { width:32px;height:32px;border-radius:50%;background:var(--sage-light);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--sage);flex-shrink:0; }
+
+    /* ── MAIN ── */
+    .main-wrapper { margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;overflow:hidden; }
+
+    /* ── TOPBAR ── */
+    .topbar { background:white;border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:40;flex-shrink:0; }
+    .topbar-avatar { width:34px;height:34px;border-radius:50%;background:var(--sage-light);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--sage); }
+    .btn-logout { display:flex;align-items:center;gap:6px;padding:6px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:12.5px;color:var(--muted);cursor:pointer;background:white;transition:all .15s;font-family:'DM Sans',sans-serif; }
+    .btn-logout:hover { background:var(--surface);border-color:#C9D5CF;color:var(--ink); }
+
+    /* ── CALENDAR TOOLBAR ── */
+    .cal-toolbar { background:white;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;flex-shrink:0; }
+    .nav-week-btn { width:32px;height:32px;border:1.5px solid var(--border);border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:var(--muted); }
+    .nav-week-btn:hover { border-color:var(--sage-mid);color:var(--sage);background:var(--sage-light); }
+    .week-label { font-size:14px;font-weight:600;color:var(--ink); }
+    .btn-today { padding:7px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);background:white;cursor:pointer;transition:all .15s; }
+    .btn-today:hover { border-color:var(--sage-mid);color:var(--sage);background:var(--sage-light); }
+    .btn-new-apt { display:inline-flex;align-items:center;gap:7px;padding:8px 16px;background:var(--sage);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;cursor:pointer;transition:background .2s,box-shadow .2s;box-shadow:0 4px 12px rgba(92,122,107,.28); }
+    .btn-new-apt:hover { background:#4D6B5C; }
+
+    /* View toggle */
+    .view-toggle { display:flex;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:3px;gap:2px; }
+    .view-btn { padding:5px 12px;border-radius:7px;font-size:12.5px;font-weight:500;color:var(--muted);cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;transition:all .15s; }
+    .view-btn.active { background:white;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08); }
+
+    /* Legend */
+    .legend { display:flex;align-items:center;gap:14px;flex-wrap:wrap; }
+    .legend-item { display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted); }
+    .legend-dot { width:8px;height:8px;border-radius:3px; }
+
+    /* ── BODY: calendar + sidebar ── */
+    .cal-body { display:flex;flex:1;overflow:hidden;min-height:0; }
+
+    /* ── CALENDAR PANEL ── */
+    .cal-panel { flex:1;overflow-y:auto;overflow-x:auto;position:relative; }
+
+    /* Day header row */
+    .day-header-row { display:grid;position:sticky;top:0;z-index:20;background:white;border-bottom:1px solid var(--border); }
+    .day-header-row .time-gutter { width:var(--time-col);flex-shrink:0; }
+    .day-col-header { padding:10px 8px 8px;text-align:center;border-left:1px solid var(--border); }
+    .day-name { font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted); }
+    .day-num { font-size:22px;font-weight:600;color:var(--ink);line-height:1;margin-top:2px; }
+    .day-col-header.today .day-name { color:var(--sage); }
+    .day-col-header.today .day-num { width:36px;height:36px;background:var(--sage);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:2px auto 0; }
+
+    /* Grid */
+    .cal-grid { display:grid;position:relative; }
+    .cal-grid-inner { display:flex;min-width:600px; }
+    .time-col-wrap { width:var(--time-col);flex-shrink:0;position:relative; }
+    .time-slot-label { height:var(--hour-h);display:flex;align-items:flex-start;justify-content:flex-end;padding-top:0;padding-right:10px;font-size:11px;color:#B0BDB7;font-weight:500;position:relative;top:-8px; }
+    .days-wrap { flex:1;display:grid;position:relative; }
+    .day-col { border-left:1px solid var(--border);position:relative; }
+    .hour-cell { height:var(--hour-h);border-bottom:1px solid #F0F4F2;position:relative;cursor:pointer;transition:background .1s; }
+    .hour-cell:hover { background:rgba(92,122,107,.04); }
+    .hour-cell .half-line { position:absolute;left:0;right:0;top:50%;border-top:1px dashed #EAEEE9; }
+
+    /* Current time line */
+    .now-line { position:absolute;left:0;right:0;z-index:10;pointer-events:none; }
+    .now-line::before { content:'';display:block;height:2px;background:var(--sage);border-radius:99px; }
+    .now-dot { width:9px;height:9px;background:var(--sage);border-radius:50%;position:absolute;left:-4px;top:-4px; }
+
+    /* ── APPOINTMENT BLOCKS ── */
+    .apt-block { position:absolute;left:4px;right:4px;border-radius:8px;padding:6px 8px;cursor:pointer;transition:filter .15s,transform .15s,box-shadow .15s;z-index:5;overflow:hidden;border-left:3px solid; }
+    .apt-block:hover { filter:brightness(.95);transform:translateY(-1px) scaleX(1.01);box-shadow:0 4px 16px rgba(0,0,0,.12); }
+    .apt-block.confirmed  { background:var(--bg-confirmed);border-color:var(--c-confirmed); }
+    .apt-block.pending    { background:var(--bg-pending);  border-color:var(--c-pending);   }
+    .apt-block.cancelled  { background:var(--bg-cancelled);border-color:var(--c-cancelled); }
+    .apt-block.inroom     { background:var(--bg-inroom);   border-color:var(--c-inroom);    }
+    .apt-title { font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .apt-meta  { font-size:11px;opacity:.75;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .confirmed .apt-title  { color:var(--c-confirmed); }
+    .pending   .apt-title  { color:var(--c-pending);   }
+    .cancelled .apt-title  { color:var(--c-cancelled); }
+    .inroom    .apt-title  { color:var(--c-inroom);    }
+    .confirmed .apt-meta   { color:var(--c-confirmed); }
+    .pending   .apt-meta   { color:var(--c-pending);   }
+    .cancelled .apt-meta   { color:var(--c-cancelled); }
+    .inroom    .apt-meta   { color:var(--c-inroom);    }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel { width:280px;flex-shrink:0;background:white;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto; }
+    .rp-header { padding:16px 18px;border-bottom:1px solid var(--border); }
+    .rp-title { font-size:13.5px;font-weight:600;color:var(--ink); }
+    .rp-sub { font-size:12px;color:var(--muted);margin-top:2px; }
+    .rp-apt { padding:12px 18px;border-bottom:1px solid #F0F4F2;cursor:pointer;transition:background .12s;display:flex;gap:10px;align-items:flex-start; }
+    .rp-apt:hover { background:var(--surface); }
+    .rp-apt:last-child { border-bottom:none; }
+    .rp-dot { width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px; }
+    .rp-apt-name { font-size:13px;font-weight:500;color:var(--ink); }
+    .rp-apt-meta { font-size:11.5px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap; }
+    .rp-empty { padding:32px 18px;text-align:center;color:var(--muted);font-size:13px; }
+
+    /* ── MODAL ── */
+    .modal-bg { position:fixed;inset:0;background:rgba(15,20,17,.45);z-index:100;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px);animation:fadeModal .2s ease; }
+    .modal-bg.show { display:flex; }
+    @keyframes fadeModal { from{opacity:0} to{opacity:1} }
+    .modal { background:white;border-radius:18px;width:100%;max-width:480px;margin:16px;box-shadow:0 24px 80px rgba(0,0,0,.18);animation:slideUp .25s ease; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .modal-header { padding:22px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px; }
+    .modal-title { font-size:16px;font-weight:600;color:var(--ink); }
+    .modal-sub { font-size:12.5px;color:var(--muted);margin-top:3px; }
+    .modal-close { width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0;color:var(--muted); }
+    .modal-close:hover { background:var(--surface);color:var(--ink); }
+    .modal-body { padding:20px 24px;display:flex;flex-direction:column;gap:14px; }
+    .modal-footer { padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end; }
+
+    /* Status banner in detail modal */
+    .status-bar { border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500; }
+    .status-bar.confirmed { background:var(--bg-confirmed);color:var(--c-confirmed);border:1px solid var(--bd-confirmed); }
+    .status-bar.pending   { background:var(--bg-pending);  color:var(--c-pending);  border:1px solid var(--bd-pending);   }
+    .status-bar.cancelled { background:var(--bg-cancelled);color:var(--c-cancelled);border:1px solid var(--bd-cancelled); }
+    .status-bar.inroom    { background:var(--bg-inroom);   color:var(--c-inroom);   border:1px solid var(--bd-inroom);    }
+
+    /* Modal detail row */
+    .detail-row { display:flex;gap:10px;align-items:flex-start; }
+    .detail-icon { width:32px;height:32px;border-radius:8px;background:var(--surface);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--muted); }
+    .detail-label { font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#B0BDB7;margin-bottom:2px; }
+    .detail-value { font-size:13.5px;color:var(--ink); }
+
+    /* Form inputs in new-apt modal */
+    .form-label { font-size:11.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#B0BDB7;margin-bottom:5px;display:block; }
+    .form-input { width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--ink);background:white;outline:none;transition:border-color .2s,box-shadow .2s; }
+    .form-input:focus { border-color:var(--sage);box-shadow:0 0 0 3px rgba(92,122,107,.1); }
+    .form-row { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+
+    /* Buttons */
+    .btn-primary { display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:var(--sage);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;cursor:pointer;transition:background .2s;box-shadow:0 4px 12px rgba(92,122,107,.28); }
+    .btn-primary:hover { background:#4D6B5C; }
+    .btn-secondary { display:inline-flex;align-items:center;gap:7px;padding:8px 16px;background:white;color:var(--ink);border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;cursor:pointer;transition:all .15s; }
+    .btn-secondary:hover { border-color:var(--sage-mid);background:var(--sage-light);color:var(--sage); }
+    .btn-danger { display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:white;color:#C0392B;border:1.5px solid #F5C6C2;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s; }
+    .btn-danger:hover { background:#FDF0EF;border-color:#E8948E; }
+
+    /* Sidebar toggle */
+    .sidebar-toggle { display:none;padding:6px;border:none;background:none;cursor:pointer;color:var(--muted); }
+    .sidebar-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:45; }
+
+    /* Toast */
+    #toast { position:fixed;bottom:24px;right:24px;z-index:200;background:#1A1F1C;color:white;padding:11px 16px;border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;display:none;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.18); }
+
+    @media(max-width:900px) { .right-panel { display:none; } }
+    @media(max-width:768px) {
+      .sidebar { transform:translateX(-100%); }
+      .sidebar.open { transform:translateX(0); }
+      .sidebar-overlay.show { display:block; }
+      .sidebar-toggle { display:flex; }
+      .main-wrapper { margin-left:0; }
+      .form-row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8 2 5 5 5 8c0 2 .5 3.5 1 5l1.5 7c.3 1.2 1.4 2 2.5 2s2.2-.8 2.5-2l.5-2 .5 2c.3 1.2 1.4 2 2.5 2s2.2-.8 2.5-2L20 13c.5-1.5 1-3 1-5 0-3-3-6-9-6z" fill="white"/></svg>
+    </div>
+    <div>
+      <div style="font-size:14px;font-weight:600;color:#1A1F1C;line-height:1.2">DentalOS</div>
+      <div style="font-size:10px;color:#B0BDB7;letter-spacing:.04em">Clínica Dental</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="dashboard.html">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard
+    </a>
+    <a class="nav-item" href="pacientes.html">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Pacientes
+    </a>
+    <a class="nav-item active" href="#">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Citas
+      <span class="nav-badge">8</span>
+    </a>
+    <a class="nav-item" href="pacientes.html">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Historia Clínica
+    </a>
+    <div class="nav-section-label">Finanzas</div>
+    <a class="nav-item" href="pacientes.html">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Pagos
+      <span class="nav-badge" style="background:#B45309">3</span>
+    </a>
+    <div class="nav-section-label">Sistema</div>
+    <a class="nav-item" href="#">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Configuración
+    </a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-mini">
+      <div class="avatar-sm">DR</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:500;color:#1A1F1C;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Dr. Rodríguez</div>
+        <div style="font-size:11px;color:#B0BDB7">Doctor</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main-wrapper">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span style="font-size:15px;font-weight:600;color:var(--ink)">Agenda de Citas</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="position:relative;cursor:pointer">
+        <div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:9px;transition:background .15s" onmouseenter="this.style.background='#F5F7F5'" onmouseleave="this.style.background='transparent'">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6B7570" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div style="position:absolute;top:6px;right:6px;width:7px;height:7px;background:#C0392B;border-radius:50%;border:1.5px solid white"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;border-left:1px solid #E4EAE7;padding-left:12px">
+        <div class="topbar-avatar">DR</div>
+        <div class="hidden sm:block" style="line-height:1.3">
+          <div style="font-size:13px;font-weight:500;color:#1A1F1C">Dr. Rodríguez</div>
+          <div style="font-size:11px;color:#B0BDB7">Doctor · Admin</div>
+        </div>
+        <button class="btn-logout" onclick="window.location.href='login.html'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span class="hidden sm:inline">Salir</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CALENDAR TOOLBAR -->
+  <div class="cal-toolbar">
+    <!-- Left: nav + week label -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="nav-week-btn" onclick="changeWeek(-1)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="btn-today" onclick="goToday()">Hoy</button>
+      <button class="nav-week-btn" onclick="changeWeek(1)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <span class="week-label" id="weekLabel">—</span>
+    </div>
+
+    <!-- Center: legend -->
+    <div class="legend hidden md:flex">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--c-confirmed)"></div>Atendida</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--c-inroom)"></div>En sala</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--c-pending)"></div>Pendiente</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--c-cancelled)"></div>Cancelada</div>
+    </div>
+
+    <!-- Right: view toggle + new -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="view-toggle">
+        <button class="view-btn" onclick="showToast('Vista día — próximamente')">Día</button>
+        <button class="view-btn active">Semana</button>
+      </div>
+      <button class="btn-new-apt" onclick="openNewModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nueva cita
+      </button>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="cal-body">
+
+    <!-- ── CALENDAR PANEL ── -->
+    <div class="cal-panel" id="calPanel">
+
+      <!-- Day headers -->
+      <div class="day-header-row" id="dayHeaderRow" style="display:grid"></div>
+
+      <!-- Grid -->
+      <div class="cal-grid-inner" id="calGridInner">
+        <!-- time labels -->
+        <div class="time-col-wrap" id="timeColWrap"></div>
+        <!-- day columns -->
+        <div class="days-wrap" id="daysWrap" style="display:grid"></div>
+      </div>
+
+    </div>
+
+    <!-- ── RIGHT PANEL ── -->
+    <aside class="right-panel">
+      <div class="rp-header">
+        <div class="rp-title" id="rpTitle">Citas de hoy</div>
+        <div class="rp-sub" id="rpSub">Sábado 19 de abril</div>
+      </div>
+      <div id="rpList"></div>
+      <div style="padding:14px 18px;border-top:1px solid var(--border);margin-top:auto">
+        <button class="btn-primary" style="width:100%;justify-content:center" onclick="openNewModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva cita
+        </button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: DETAIL
+══════════════════════════════════════ -->
+<div class="modal-bg" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="dm-title">—</div>
+        <div class="modal-sub" id="dm-sub">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('detailModal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="status-bar" id="dm-status-bar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="dm-status-text">—</span>
+      </div>
+      <div class="detail-row">
+        <div class="detail-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div><div class="detail-label">Hora</div><div class="detail-value" id="dm-time">—</div></div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div><div class="detail-label">Paciente</div><div class="detail-value" id="dm-patient">—</div></div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+        <div><div class="detail-label">Doctor</div><div class="detail-value" id="dm-doctor">—</div></div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+        <div><div class="detail-label">Motivo</div><div class="detail-value" id="dm-motivo">—</div></div>
+      </div>
+      <div class="detail-row" id="dm-notes-row">
+        <div class="detail-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <div><div class="detail-label">Notas</div><div class="detail-value" id="dm-notes" style="color:var(--muted);font-size:13px">—</div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" onclick="cancelAppointment()">Cancelar cita</button>
+      <button class="btn-secondary" onclick="showToast('Abriendo editor…');closeModal('detailModal')">Editar</button>
+      <button class="btn-primary" onclick="markAttended()">Marcar atendida</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: NEW APPOINTMENT
+══════════════════════════════════════ -->
+<div class="modal-bg" id="newModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Nueva cita</div>
+        <div class="modal-sub" id="nm-sub">Completa los datos de la cita</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('newModal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label class="form-label">Paciente</label>
+        <select class="form-input" id="nm-patient-select">
+          <option value="">Seleccionar paciente…</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div>
+          <label class="form-label">Fecha</label>
+          <input class="form-input" type="date" id="nm-date"/>
+        </div>
+        <div>
+          <label class="form-label">Doctor</label>
+          <select class="form-input" id="nm-doc">
+            <option value="usr-001">Dr. Rodríguez</option>
+            <option value="usr-002">Dra. Sánchez</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label class="form-label">Hora inicio</label>
+          <input class="form-input" type="time" id="nm-start" value="09:00"/>
+        </div>
+        <div>
+          <label class="form-label">Hora fin</label>
+          <input class="form-input" type="time" id="nm-end" value="09:30"/>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Motivo de consulta</label>
+        <input class="form-input" type="text" placeholder="Ej. Limpieza dental, revisión de brackets…" id="nm-motivo"/>
+      </div>
+      <div>
+        <label class="form-label">Notas internas (opcional)</label>
+        <textarea class="form-input" rows="2" placeholder="Instrucciones para recepción o doctor…" style="resize:vertical" id="nm-notes"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('newModal')">Cancelar</button>
+      <button class="btn-primary" onclick="saveNewApt()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Guardar cita
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="position:fixed;bottom:24px;right:24px;z-index:300;background:#1A1F1C;color:white;padding:11px 16px;border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;display:none;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8C4B8" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// data.js INLINE — fuente única de datos
+// Fuente de datos: copia inline de data.js — en produccion importar externamente
+// ═══════════════════════════════════════════════════════
+'use strict';
+function _uuid(){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16)});}
+function _clone(obj){return JSON.parse(JSON.stringify(obj));}
+function _toDateStr(d){return d.toISOString().split('T')[0];}
+const DB={
+  usuarios:[{id:'usr-001',nombre:'Carlos Rodríguez',rol:'admin'},{id:'usr-002',nombre:'Laura Sánchez',rol:'doctor'}],
+  pacientes:[
+    {id:'pac-001',nombre:'Ana',apellido:'García Torres',activo:true},
+    {id:'pac-002',nombre:'Carlos',apellido:'Mendoza Paredes',activo:true},
+    {id:'pac-003',nombre:'Lucía',apellido:'Ríos Vargas',activo:true},
+    {id:'pac-004',nombre:'Miguel',apellido:'Quispe Apaza',activo:true},
+    {id:'pac-005',nombre:'Sofía',apellido:'Palma Castillo',activo:true},
+    {id:'pac-006',nombre:'Roberto',apellido:'Flores Mamani',activo:true},
+    {id:'pac-007',nombre:'Valeria',apellido:'Torres Cano',activo:true},
+    {id:'pac-008',nombre:'José',apellido:'Huanca Ramos',activo:true},
+    {id:'pac-009',nombre:'Carmen',apellido:'Salas Espinoza',activo:true},
+    {id:'pac-010',nombre:'Diego',apellido:'Llerena Cárdenas',activo:true},
+    {id:'pac-011',nombre:'Natalia',apellido:'Vega Puma',activo:true},
+    {id:'pac-012',nombre:'Andrés',apellido:'Ccopa Quispe',activo:true},
+    {id:'pac-013',nombre:'Milagros',apellido:'Bravo Fuentes',activo:true},
+    {id:'pac-014',nombre:'Luis',apellido:'Condori Chávez',activo:true},
+    {id:'pac-015',nombre:'Patricia',apellido:'Sucari Limachi',activo:true}
+  ],
+  citas:[
+    // Lun 13 abr
+    {id:'cm1',pacienteId:'pac-001',doctorId:'usr-001',fecha:'2026-04-13',horaInicio:'09:00',horaFin:'09:30',motivo:'Limpieza dental',estado:'atendida',notasRecepcion:''},
+    {id:'cm2',pacienteId:'pac-002',doctorId:'usr-001',fecha:'2026-04-13',horaInicio:'10:00',horaFin:'11:00',motivo:'Extracción molar',estado:'atendida',notasRecepcion:'Paciente ansioso'},
+    {id:'cm3',pacienteId:'pac-005',doctorId:'usr-001',fecha:'2026-04-13',horaInicio:'11:30',horaFin:'12:00',motivo:'Control ortodoncia',estado:'confirmada',notasRecepcion:''},
+    {id:'cm4',pacienteId:'pac-006',doctorId:'usr-001',fecha:'2026-04-13',horaInicio:'15:00',horaFin:'16:00',motivo:'Control post-operatorio',estado:'confirmada',notasRecepcion:'Revisar cicatrización'},
+    // Mar 14 abr
+    {id:'ct1',pacienteId:'pac-003',doctorId:'usr-001',fecha:'2026-04-14',horaInicio:'09:00',horaFin:'09:30',motivo:'Revisión de brackets',estado:'atendida',notasRecepcion:''},
+    {id:'ct2',pacienteId:'pac-002',doctorId:'usr-001',fecha:'2026-04-14',horaInicio:'10:00',horaFin:'11:00',motivo:'Extracción molar',estado:'atendida',notasRecepcion:''},
+    {id:'ct3',pacienteId:'pac-007',doctorId:'usr-001',fecha:'2026-04-14',horaInicio:'14:00',horaFin:'14:30',motivo:'Blanqueamiento',estado:'cancelada',notasRecepcion:'Canceló por emergencia'},
+    {id:'ct4',pacienteId:'pac-008',doctorId:'usr-001',fecha:'2026-04-14',horaInicio:'16:00',horaFin:'17:00',motivo:'Endodoncia sesión 2',estado:'atendida',notasRecepcion:'Sesión 2 de 3'},
+    // Mié 15 abr
+    {id:'cw1',pacienteId:'pac-009',doctorId:'usr-001',fecha:'2026-04-15',horaInicio:'08:00',horaFin:'09:00',motivo:'Implante dental',estado:'atendida',notasRecepcion:'~60min'},
+    {id:'cw2',pacienteId:'pac-010',doctorId:'usr-001',fecha:'2026-04-15',horaInicio:'11:00',horaFin:'11:30',motivo:'Revisión y limpieza',estado:'cancelada',notasRecepcion:''},
+    {id:'cw3',pacienteId:'pac-011',doctorId:'usr-001',fecha:'2026-04-15',horaInicio:'15:00',horaFin:'15:30',motivo:'Consulta de urgencia',estado:'confirmada',notasRecepcion:''},
+    // Jue 16 abr
+    {id:'cj1',pacienteId:'pac-012',doctorId:'usr-001',fecha:'2026-04-16',horaInicio:'09:30',horaFin:'10:30',motivo:'Prótesis dental',estado:'atendida',notasRecepcion:''},
+    {id:'cj2',pacienteId:'pac-013',doctorId:'usr-001',fecha:'2026-04-16',horaInicio:'12:00',horaFin:'12:30',motivo:'Control brackets',estado:'atendida',notasRecepcion:''},
+    {id:'cj3',pacienteId:'pac-014',doctorId:'usr-001',fecha:'2026-04-16',horaInicio:'16:30',horaFin:'17:00',motivo:'Limpieza dental',estado:'programada',notasRecepcion:''},
+    // Vie 17 abr
+    {id:'cv1',pacienteId:'pac-015',doctorId:'usr-001',fecha:'2026-04-17',horaInicio:'08:30',horaFin:'09:00',motivo:'Extracción de muela',estado:'atendida',notasRecepcion:'Alergia penicilina'},
+    {id:'cv2',pacienteId:'pac-001',doctorId:'usr-001',fecha:'2026-04-17',horaInicio:'10:00',horaFin:'11:00',motivo:'Revisión post-limpieza',estado:'atendida',notasRecepcion:''},
+    {id:'cv3',pacienteId:'pac-002',doctorId:'usr-001',fecha:'2026-04-17',horaInicio:'14:00',horaFin:'15:30',motivo:'Endodoncia sesión 2',estado:'en_sala',notasRecepcion:'Rx panorámica lista'},
+    // Sáb 18 abr
+    {id:'cs1',pacienteId:'pac-001',doctorId:'usr-001',fecha:'2026-04-18',horaInicio:'09:00',horaFin:'09:30',motivo:'Control mensual',estado:'atendida',notasRecepcion:''},
+    {id:'cs2',pacienteId:'pac-003',doctorId:'usr-001',fecha:'2026-04-18',horaInicio:'10:00',horaFin:'11:00',motivo:'Revisión brackets',estado:'atendida',notasRecepcion:''},
+    // Dom 19 abr (HOY)
+    {id:'cit-001',pacienteId:'pac-001',doctorId:'usr-001',fecha:'2026-04-19',horaInicio:'09:00',horaFin:'09:30',motivo:'Control mensual',estado:'confirmada',notasRecepcion:''},
+    {id:'cit-002',pacienteId:'pac-003',doctorId:'usr-001',fecha:'2026-04-19',horaInicio:'10:00',horaFin:'11:00',motivo:'Revisión de brackets',estado:'en_sala',notasRecepcion:'Paciente en sala 1.'},
+    {id:'cit-003',pacienteId:'pac-004',doctorId:'usr-001',fecha:'2026-04-19',horaInicio:'11:30',horaFin:'12:00',motivo:'Primera consulta',estado:'programada',notasRecepcion:''},
+    {id:'cit-004',pacienteId:'pac-005',doctorId:'usr-001',fecha:'2026-04-19',horaInicio:'14:00',horaFin:'14:30',motivo:'Blanqueamiento dental',estado:'programada',notasRecepcion:''},
+    {id:'cit-005',pacienteId:'pac-006',doctorId:'usr-001',fecha:'2026-04-19',horaInicio:'15:00',horaFin:'16:00',motivo:'Control post-operatorio',estado:'cancelada',notasRecepcion:'Canceló por enfermedad.'},
+    // Sem siguiente
+    {id:'cit-009',pacienteId:'pac-001',doctorId:'usr-001',fecha:'2026-04-22',horaInicio:'09:00',horaFin:'09:30',motivo:'Revisión preventiva',estado:'programada',notasRecepcion:''},
+    {id:'cit-010',pacienteId:'pac-007',doctorId:'usr-002',fecha:'2026-04-23',horaInicio:'10:30',horaFin:'11:00',motivo:'Control ortodoncia',estado:'programada',notasRecepcion:''},
+    {id:'cit-n1',pacienteId:'pac-002',doctorId:'usr-001',fecha:'2026-04-24',horaInicio:'09:00',horaFin:'10:00',motivo:'Endodoncia sesión 3',estado:'programada',notasRecepcion:''},
+    {id:'cit-n2',pacienteId:'pac-008',doctorId:'usr-001',fecha:'2026-04-25',horaInicio:'11:00',horaFin:'11:30',motivo:'Control post-endodoncia',estado:'programada',notasRecepcion:''}
+  ]
+};
+
+// ── API ──────────────────────────────────────────────
+function _buildResponse(ok,data,error=null){return{ok,data:ok?data:null,error};}
+function _enrichCita(c){
+  const pac=DB.pacientes.find(p=>p.id===c.pacienteId);
+  const doc=DB.usuarios.find(u=>u.id===c.doctorId);
+  c.pacienteNombre=pac?`${pac.nombre} ${pac.apellido}`:'Desconocido';
+  c.doctorNombre  =doc?doc.nombre:'Desconocido';
+  return c;
+}
+function getAppointmentsByRange(desde,hasta){
+  try{
+    const r=_clone(DB.citas)
+      .filter(c=>c.fecha>=desde&&c.fecha<=hasta)
+      .map(_enrichCita);
+    return _buildResponse(true,r);
+  }catch(e){return _buildResponse(false,null,e.message);}
+}
+function createAppointment(data){
+  try{
+    if(!data.pacienteId||!data.fecha||!data.horaInicio||!data.horaFin||!data.motivo)
+      throw new Error('Campos requeridos faltantes.');
+    const ol=DB.citas.find(c=>
+      c.doctorId===data.doctorId&&c.fecha===data.fecha&&
+      !['cancelada','no_asistio'].includes(c.estado)&&
+      c.horaInicio<data.horaFin&&c.horaFin>data.horaInicio
+    );
+    if(ol)throw new Error(`Horario ocupado: ${ol.horaInicio}–${ol.horaFin}.`);
+    const nc={id:_uuid(),...data,estado:'programada',notasRecepcion:data.notasRecepcion||''};
+    DB.citas.push(nc);
+    return _buildResponse(true,_enrichCita(_clone(nc)));
+  }catch(e){return _buildResponse(false,null,e.message);}
+}
+function updateAppointment(id,data){
+  try{
+    const idx=DB.citas.findIndex(c=>c.id===id);
+    if(idx===-1)throw new Error('Cita no encontrada.');
+    ['id','createdAt'].forEach(f=>delete data[f]);
+    DB.citas[idx]={...DB.citas[idx],...data};
+    return _buildResponse(true,_enrichCita(_clone(DB.citas[idx])));
+  }catch(e){return _buildResponse(false,null,e.message);}
+}
+function getPatients(){
+  return _buildResponse(true,_clone(DB.pacientes).filter(p=>p.activo).map(p=>({...p,nombreCompleto:`${p.nombre} ${p.apellido}`})));
+}
+const DentalOS={getAppointmentsByRange,createAppointment,updateAppointment,getPatients,_db:DB};
+window.DentalOS=DentalOS;
+
+// ═══════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════
+const HOUR_H   = 72;
+const START_H  = 8;
+const END_H    = 20;
+const DAYS     = ['Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MONTHS   = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const MONTHS_S = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const TODAY    = new Date(2026, 3, 19); // 19 abr 2026 (sábado demo)
+let weekOffset = 0;
+let weekApts   = [];      // citas de la semana cargadas desde DentalOS
+let currentAptId = null;  // ID de la cita abierta en modal de detalle
+
+// ═══════════════════════════════════════════════════════
+// LOAD WEEK DATA FROM DentalOS
+// ═══════════════════════════════════════════════════════
+function getWeekStart(offset){
+  const d=new Date(TODAY);
+  const dow=d.getDay()===0?7:d.getDay();
+  d.setDate(d.getDate()-dow+1+offset*7);
+  return d;
+}
+
+function loadWeekAppointments(weekStart){
+  const desde=_toDateStr(weekStart);
+  const hastaDate=new Date(weekStart);
+  hastaDate.setDate(weekStart.getDate()+5);
+  const hasta=_toDateStr(hastaDate);
+  const res=DentalOS.getAppointmentsByRange(desde,hasta);
+  if(res.ok){
+    weekApts=res.data;
+  } else {
+    console.error('[agenda] Error al cargar citas:',res.error);
+    weekApts=[];
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// CONVERT DB cita → calendar block shape
+// ═══════════════════════════════════════════════════════
+function citaToBlock(cita){
+  const[hI,mI]=cita.horaInicio.split(':').map(Number);
+  const[hF,mF]=cita.horaFin.split(':').map(Number);
+  const startH=hI+mI/60;
+  const endH  =hF+mF/60;
+  const dur   =Math.max(endH-startH,0.25);
+  const statusMap={
+    atendida:'confirmed',confirmada:'confirmed',
+    programada:'pending',en_sala:'inroom',
+    cancelada:'cancelled',no_asistio:'cancelled'
+  };
+  return {
+    id:         cita.id,
+    startH,dur,
+    patient:    cita.pacienteNombre,
+    doctor:     cita.doctorNombre,
+    motivo:     cita.motivo,
+    status:     statusMap[cita.estado]||'pending',
+    notes:      cita.notasRecepcion||'',
+    estado:     cita.estado,
+    pacienteId: cita.pacienteId,
+    horaInicio: cita.horaInicio,
+    horaFin:    cita.horaFin,
+    fecha:      cita.fecha,
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER CALENDAR
+// ═══════════════════════════════════════════════════════
+function renderCalendar(){
+  const weekStart=getWeekStart(weekOffset);
+  loadWeekAppointments(weekStart);
+
+  const dates=[];
+  for(let i=0;i<6;i++){
+    const d=new Date(weekStart);
+    d.setDate(weekStart.getDate()+i);
+    dates.push(d);
+  }
+
+  // Week label
+  const ms=dates[0],me=dates[5];
+  document.getElementById('weekLabel').textContent=
+    ms.getMonth()===me.getMonth()
+      ?`${ms.getDate()} – ${me.getDate()} ${MONTHS[ms.getMonth()]} ${ms.getFullYear()}`
+      :`${ms.getDate()} ${MONTHS_S[ms.getMonth()]} – ${me.getDate()} ${MONTHS_S[me.getMonth()]} ${me.getFullYear()}`;
+
+  // Day headers
+  const headerRow=document.getElementById('dayHeaderRow');
+  headerRow.style.gridTemplateColumns='56px repeat(6,1fr)';
+  headerRow.innerHTML=`<div style="width:56px;flex-shrink:0;border-right:1px solid var(--border)"></div>`;
+  dates.forEach((d,i)=>{
+    const isToday=sameDay(d,TODAY);
+    const div=document.createElement('div');
+    div.className='day-col-header'+(isToday?' today':'');
+    div.innerHTML=`<div class="day-name">${DAYS[i]}</div><div class="day-num">${d.getDate()}</div>`;
+    headerRow.appendChild(div);
+  });
+
+  // Time labels
+  const timeCol=document.getElementById('timeColWrap');
+  timeCol.innerHTML='';
+  for(let h=START_H;h<=END_H;h++){
+    const lbl=document.createElement('div');
+    lbl.className='time-slot-label';
+    lbl.textContent=h<12?`${h} AM`:h===12?'12 PM':`${h-12} PM`;
+    timeCol.appendChild(lbl);
+  }
+
+  // Day columns
+  const daysWrap=document.getElementById('daysWrap');
+  daysWrap.style.gridTemplateColumns='repeat(6,1fr)';
+  daysWrap.innerHTML='';
+
+  dates.forEach((date,di)=>{
+    const col=document.createElement('div');
+    col.className='day-col';
+    col.style.position='relative';
+
+    // Hour cells — click opens new-apt modal
+    for(let h=START_H;h<END_H;h++){
+      const cell=document.createElement('div');
+      cell.className='hour-cell';
+      cell.innerHTML='<div class="half-line"></div>';
+      cell.addEventListener('click',()=>openNewModal(date,h));
+      col.appendChild(cell);
+    }
+
+    // Now-line (today only, demo at 11:20)
+    if(sameDay(date,TODAY)){
+      const demoH=11+20/60;
+      const top=Math.max(0,(demoH-START_H)*HOUR_H);
+      const line=document.createElement('div');
+      line.className='now-line';
+      line.style.top=top+'px';
+      line.innerHTML='<div class="now-dot"></div>';
+      col.appendChild(line);
+    }
+
+    // Appointment blocks — query DentalOS data by date string
+    const dateStr=_toDateStr(date);
+    weekApts
+      .filter(c=>c.fecha===dateStr)
+      .map(citaToBlock)
+      .forEach(apt=>col.appendChild(buildAptBlock(apt)));
+
+    daysWrap.appendChild(col);
+  });
+
+  renderRightPanel(dates);
+}
+
+function buildAptBlock(apt){
+  const top   =(apt.startH-START_H)*HOUR_H;
+  const height=Math.max(apt.dur*HOUR_H-4,24);
+  const block =document.createElement('div');
+  block.className='apt-block '+statusClass(apt.status);
+  block.style.top   =(top+2)+'px';
+  block.style.height=height+'px';
+  const timeStr=formatHour(apt.startH)+' – '+formatHour(apt.startH+apt.dur);
+  block.innerHTML=`
+    <div class="apt-title">${apt.patient}</div>
+    ${height>34?`<div class="apt-meta">${timeStr} · ${apt.motivo}</div>`:''}`;
+  block.addEventListener('click',e=>{e.stopPropagation();openDetailModal(apt,timeStr);});
+  return block;
+}
+
+// ── Right panel: today's citas from DentalOS ──
+function renderRightPanel(dates){
+  const todayIdx =dates.findIndex(d=>sameDay(d,TODAY));
+  const todayStr =todayIdx>=0?_toDateStr(dates[todayIdx]):null;
+  const todayApts=todayStr
+    ?weekApts.filter(c=>c.fecha===todayStr).sort((a,b)=>a.horaInicio.localeCompare(b.horaInicio))
+    :[];
+
+  document.getElementById('rpTitle').textContent=todayIdx>=0
+    ?`Citas de hoy (${todayApts.length})`:'Citas esta semana';
+  document.getElementById('rpSub').textContent=todayIdx>=0?formatDateFull(TODAY):'';
+
+  const rpList=document.getElementById('rpList');
+  if(todayApts.length===0){rpList.innerHTML=`<div class="rp-empty">No hay citas para hoy.</div>`;return;}
+  rpList.innerHTML='';
+  todayApts.forEach(cita=>{
+    const block=citaToBlock(cita);
+    const div=document.createElement('div');
+    div.className='rp-apt';
+    const timeStr=cita.horaInicio+' – '+cita.horaFin;
+    div.onclick=()=>openDetailModal(block,timeStr);
+    div.innerHTML=`
+      <div class="rp-dot" style="background:${statusColor(block.status)}"></div>
+      <div>
+        <div class="rp-apt-name">${cita.pacienteNombre}</div>
+        <div class="rp-apt-meta">
+          <span>${cita.horaInicio}</span>
+          <span style="color:#D4DDD9">·</span>
+          <span>${cita.motivo}</span>
+        </div>
+      </div>`;
+    rpList.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════
+function openDetailModal(apt,timeStr){
+  currentAptId=apt.id;
+  const sc=statusClass(apt.status);
+  document.getElementById('dm-status-bar').className='status-bar '+sc;
+  document.getElementById('dm-status-text').textContent=statusLabel(apt.status);
+  document.getElementById('dm-title').textContent  =apt.patient;
+  document.getElementById('dm-sub').textContent    =apt.motivo;
+  document.getElementById('dm-time').textContent   =timeStr;
+  document.getElementById('dm-patient').textContent=apt.patient;
+  document.getElementById('dm-doctor').textContent =apt.doctor;
+  document.getElementById('dm-motivo').textContent =apt.motivo;
+  const n=apt.notes||'Sin notas registradas.';
+  document.getElementById('dm-notes').textContent  =n;
+  document.getElementById('dm-notes').style.color  =apt.notes?'var(--ink)':'var(--muted)';
+  document.getElementById('detailModal').classList.add('show');
+}
+
+function openNewModal(date,hour){
+  // Populate patient dropdown from DentalOS
+  const pRes=DentalOS.getPatients();
+  const sel=document.getElementById('nm-patient-select');
+  if(sel&&pRes.ok){
+    sel.innerHTML='<option value="">Seleccionar paciente…</option>'+
+      pRes.data.map(p=>`<option value="${p.id}">${p.nombreCompleto}</option>`).join('');
+  }
+  if(date){
+    const yyyy=date.getFullYear(),mm=String(date.getMonth()+1).padStart(2,'0'),dd=String(date.getDate()).padStart(2,'0');
+    document.getElementById('nm-date').value=`${yyyy}-${mm}-${dd}`;
+    document.getElementById('nm-sub').textContent=`${DAYS[date.getDay()===0?6:date.getDay()-1]} ${date.getDate()} ${MONTHS[date.getMonth()]}`;
+  } else {
+    document.getElementById('nm-sub').textContent='Completa los datos de la cita';
+  }
+  if(hour!==undefined){
+    document.getElementById('nm-start').value=`${String(hour).padStart(2,'0')}:00`;
+    document.getElementById('nm-end').value  =`${String(hour).padStart(2,'0')}:30`;
+  }
+  document.getElementById('newModal').classList.add('show');
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+
+// ── Modal actions wired to DentalOS ──
+function markAttended(){
+  if(!currentAptId)return;
+  const res=DentalOS.updateAppointment(currentAptId,{estado:'atendida'});
+  if(res.ok){showToast('Cita marcada como atendida');closeModal('detailModal');renderCalendar();}
+  else showToast('Error: '+res.error);
+}
+
+function cancelAppointment(){
+  if(!currentAptId)return;
+  const res=DentalOS.updateAppointment(currentAptId,{estado:'cancelada'});
+  if(res.ok){showToast('Cita cancelada');closeModal('detailModal');renderCalendar();}
+  else showToast('Error: '+res.error);
+}
+
+function saveNewApt(){
+  const sel      =document.getElementById('nm-patient-select');
+  const pacienteId=sel?sel.value:'';
+  const fecha    =document.getElementById('nm-date').value;
+  const horaInicio=document.getElementById('nm-start').value;
+  const horaFin  =document.getElementById('nm-end').value;
+  const motivo   =(document.getElementById('nm-motivo').value||'').trim();
+  const doctorId =document.getElementById('nm-doc').value||'usr-001';
+  const notas    =(document.getElementById('nm-notes').value||'').trim();
+
+  if(!pacienteId||!fecha||!motivo){showToast('Completa paciente, fecha y motivo.');return;}
+
+  const res=DentalOS.createAppointment({pacienteId,doctorId,fecha,horaInicio,horaFin,motivo,notasRecepcion:notas});
+  if(res.ok){
+    closeModal('newModal');
+    showToast(`Cita guardada para ${res.data.pacienteNombre}`);
+    if(sel)sel.value='';
+    document.getElementById('nm-motivo').value='';
+    document.getElementById('nm-notes').value='';
+    renderCalendar();
+  } else {
+    showToast('Error: '+res.error);
+  }
+}
+
+document.querySelectorAll('.modal-bg').forEach(bg=>{
+  bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});
+});
+
+// ═══════════════════════════════════════════════════════
+// WEEK NAVIGATION
+// ═══════════════════════════════════════════════════════
+function changeWeek(delta){weekOffset+=delta;renderCalendar();}
+function goToday(){weekOffset=0;renderCalendar();}
+
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
+function formatHour(h){const hh=Math.floor(h),mm=Math.round((h-hh)*60);const p=hh<12?'am':'pm';const hr=hh%12===0?12:hh%12;return mm===0?`${hr}${p}`:`${hr}:${String(mm).padStart(2,'0')}${p}`;}
+function formatDateFull(d){const days=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];return `${days[d.getDay()]} ${d.getDate()} de ${MONTHS[d.getMonth()]}`;}
+function statusClass(s){return {confirmed:'confirmed',pending:'pending',cancelled:'cancelled',inroom:'inroom'}[s]||'pending';}
+function statusColor(s){return {confirmed:'var(--c-confirmed)',pending:'var(--c-pending)',cancelled:'var(--c-cancelled)',inroom:'var(--c-inroom)'}[s];}
+function statusLabel(s){return {confirmed:'Cita atendida',pending:'Pendiente de confirmación',cancelled:'Cita cancelada',inroom:'Paciente en sala'}[s]||s;}
+function showToast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.style.display='flex';clearTimeout(window._tt);window._tt=setTimeout(()=>t.style.display='none',2800);}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+renderCalendar();
+setTimeout(()=>{document.getElementById('calPanel').scrollTop=HOUR_H*0.5;},50);
+</script>
+</body>
+</html>
