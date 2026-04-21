@@ -2,378 +2,328 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DentalOS — Ingresar</title>
-  <!-- SEO & Social -->
-  <meta name="description" content="DentalOS — Sistema de gestión para clínicas dentales en Perú. Agenda, pacientes e historias clínicas.">
-  <meta name="author" content="DentalOS">
-  <meta name="robots" content="noindex, nofollow">
-  <meta property="og:title" content="DentalOS — Ingresar">
-  <meta property="og:description" content="DentalOS — Sistema de gestión para clínicas dentales en Perú. Agenda, pacientes e historias clínicas.">
-  <meta property="og:type" content="website">
-  <meta name="theme-color" content="#5C7A6B">
-  <!-- Favicon inline SVG -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%235C7A6B"/><path d="M50 15C35 15 22 27 22 38c0 9 2.5 15 5 22l6 27c1.5 6 7 9 11 9s9.5-3 11-9l2-9 2 9c1.5 6 7 9 11 9s9.5-3 11-9l6-27c2.5-7 5-13 5-22 0-11-13-23-28-23z" fill="white"/></svg>">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DentalOS | Iniciar sesión</title>
+  <meta
+    name="description"
+    content="Accede a DentalOS, la plataforma de gestión para clínicas dentales."
+  />
+  <meta name="theme-color" content="#1f8f69" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Fraunces:ital,wght@0,300;0,500;1,300&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dental: {
+              50: "#effaf5",
+              100: "#d9f3e7",
+              200: "#b7e6d1",
+              300: "#86d2b4",
+              400: "#4db88f",
+              500: "#1f8f69",
+              600: "#187355",
+              700: "#145c46",
+              800: "#134938",
+              900: "#113c2f"
+            }
+          },
+          boxShadow: {
+            soft: "0 24px 60px rgba(17, 60, 47, 0.14)"
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
   <style>
-    :root {
-      --sage: #5C7A6B;
-      --sage-light: #EBF1EE;
-      --sage-mid: #A8C4B8;
-      --ink: #1A1F1C;
-      --muted: #6B7570;
-      --error: #C0392B;
-      --error-bg: #FDF0EF;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    /* Make html+body fill the full viewport so panels can stretch */
-    html { height: 100%; }
-
     body {
-      font-family: 'DM Sans', sans-serif;
-      background: #F5F7F5;
-      /* Both min-height AND height so flex children can inherit height */
-      min-height: 100vh;
-      height: 100vh;
-      /* Row layout with panels stretching to fill full height */
-      display: flex;
-      flex-direction: row;
-      align-items: stretch;
-      overflow: hidden; /* prevent double scrollbar on short viewports */
+      font-family: "Plus Jakarta Sans", sans-serif;
     }
 
-    /* Decorative left panel */
-    .left-panel {
-      background: var(--sage);
-      background-image:
-        radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.07) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 50%);
-      position: relative;
-      overflow: hidden;
-      /* Take exactly half the viewport width and full height */
-      width: 50%;
-      flex-shrink: 0;
-      flex-grow: 0;
-      min-height: 100%;
-    }
-    .left-panel::before {
-      content: '';
-      position: absolute;
-      width: 500px; height: 500px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.08);
-      top: -200px; left: -200px;
-    }
-    .left-panel::after {
-      content: '';
-      position: absolute;
-      width: 300px; height: 300px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.06);
-      bottom: -100px; right: -100px;
-    }
-    .tooth-grid {
-      position: absolute;
-      bottom: 40px; right: 40px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      opacity: 0.15;
-    }
-    .tooth-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: white;
+    .panel-glow {
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 38%),
+        radial-gradient(circle at bottom left, rgba(31, 143, 105, 0.18), transparent 32%),
+        linear-gradient(180deg, #f7fbf9 0%, #eef8f3 100%);
     }
 
-    /* Form card */
-    .form-card {
-      background: white;
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 24px 64px rgba(0,0,0,0.06);
-      border-radius: 20px;
-      animation: fadeUp 0.5s ease both;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Input styles */
-    .field-label {
-      display: block;
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-    .field-input {
-      width: 100%;
-      padding: 11px 14px;
-      border: 1.5px solid #E4EAE7;
-      border-radius: 10px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      color: var(--ink);
-      background: #FAFBFA;
-      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-      outline: none;
-    }
-    .field-input:focus {
-      border-color: var(--sage);
-      background: white;
-      box-shadow: 0 0 0 3px rgba(92,122,107,0.12);
-    }
-    .field-input::placeholder { color: #B0BDB7; }
-    .field-input.error {
-      border-color: var(--error);
-      background: var(--error-bg);
-    }
-
-    /* Button */
-    .btn-primary {
-      width: 100%;
-      padding: 12px;
-      background: var(--sage);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      letter-spacing: 0.02em;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-      box-shadow: 0 4px 12px rgba(92,122,107,0.3);
-    }
-    .btn-primary:hover {
-      background: #4D6B5C;
-      box-shadow: 0 6px 20px rgba(92,122,107,0.35);
-    }
-    .btn-primary:active { transform: scale(0.99); }
-
-    /* Error alert */
-    .error-alert {
-      display: none;
-      background: var(--error-bg);
-      border: 1px solid #F5C6C2;
-      border-radius: 10px;
-      padding: 12px 14px;
-      color: var(--error);
-      font-size: 13px;
-      align-items: center;
-      gap: 8px;
-      animation: shake 0.3s ease;
-    }
-    .error-alert.show { display: flex; }
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      25% { transform: translateX(-4px); }
-      75% { transform: translateX(4px); }
-    }
-
-    /* Password toggle */
-    .input-wrapper { position: relative; }
-    .toggle-password {
-      position: absolute;
-      right: 12px; top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      color: var(--muted);
-      font-size: 13px;
-      user-select: none;
-    }
-    .toggle-password:hover { color: var(--sage); }
-
-    /* Quote text on left */
-    .quote-font { font-family: 'Fraunces', serif; }
-
-    /* Right panel: fills remaining space, scrolls if content is taller than viewport */
-    .right-panel {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 1.5rem;
-      overflow-y: auto;
-      /* Minimum height so items-center works on very short viewports */
-      min-height: 100%;
+    .illustration-surface {
+      background:
+        radial-gradient(circle at 25% 25%, rgba(31, 143, 105, 0.14), transparent 28%),
+        radial-gradient(circle at 80% 20%, rgba(31, 143, 105, 0.08), transparent 26%),
+        linear-gradient(180deg, #ffffff 0%, #f4fbf7 100%);
     }
   </style>
 </head>
-<body>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+  <div class="min-h-screen flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8 panel-glow">
+    <div class="grid grid-cols-1 lg:grid-cols-2 min-h-screen w-full max-w-5xl overflow-hidden rounded-[32px] bg-white shadow-soft lg:min-h-[680px]">
+      <section class="illustration-surface relative flex min-h-[680px] overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(31,143,105,0.12),transparent_34%)]"></div>
+        <div class="absolute -left-16 bottom-10 h-56 w-56 rounded-full border-[24px] border-dental-500/90"></div>
+        <div class="absolute right-0 top-0 h-40 w-40 rounded-full bg-dental-200/60 blur-2xl"></div>
 
-  <!-- LEFT DECORATIVE PANEL (hidden on small screens) -->
-  <div class="left-panel hidden lg:flex flex-col justify-between p-12">
-    <!-- Logo -->
-    <div class="flex items-center gap-3 z-10 relative">
-      <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2C8 2 5 5 5 8c0 2 .5 3.5 1 5l1.5 7c.3 1.2 1.4 2 2.5 2s2.2-.8 2.5-2l.5-2 .5 2c.3 1.2 1.4 2 2.5 2s2.2-.8 2.5-2L20 13c.5-1.5 1-3 1-5 0-3-3-6-9-6z" fill="white" opacity="0.9"/>
-        </svg>
-      </div>
-      <span class="text-white font-semibold text-lg tracking-tight">DentalOS</span>
-    </div>
-
-    <!-- Center content -->
-    <div class="z-10 relative">
-      <p class="quote-font italic text-white/60 text-sm mb-3">Sistema de gestión clínica</p>
-      <h2 class="quote-font text-white text-4xl font-light leading-tight mb-6">
-        Todo tu consultorio,<br/>
-        <em>organizado</em> en un solo lugar.
-      </h2>
-      <div class="space-y-3">
-        <div class="flex items-center gap-3">
-          <div class="w-1 h-1 rounded-full bg-white/50"></div>
-          <span class="text-white/70 text-sm">Agenda de citas inteligente</span>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="w-1 h-1 rounded-full bg-white/50"></div>
-          <span class="text-white/70 text-sm">Historias clínicas digitales</span>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="w-1 h-1 rounded-full bg-white/50"></div>
-          <span class="text-white/70 text-sm">Gestión de pagos simplificada</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Bottom badge -->
-    <div class="z-10 relative">
-      <div class="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-2">
-        <div class="w-2 h-2 bg-green-300 rounded-full animate-pulse"></div>
-        <span class="text-white/80 text-xs">Sistema operativo · Perú</span>
-      </div>
-    </div>
-
-    <!-- Decorative dots -->
-    <div class="tooth-grid">
-      <div class="tooth-dot"></div><div class="tooth-dot"></div><div class="tooth-dot"></div><div class="tooth-dot"></div>
-      <div class="tooth-dot"></div><div class="tooth-dot"></div><div class="tooth-dot"></div><div class="tooth-dot"></div>
-      <div class="tooth-dot"></div><div class="tooth-dot"></div><div class="tooth-dot"></div><div class="tooth-dot"></div>
-      <div class="tooth-dot"></div><div class="tooth-dot"></div><div class="tooth-dot"></div><div class="tooth-dot"></div>
-    </div>
-  </div>
-
-  <!-- RIGHT — LOGIN FORM -->
-  <div class="right-panel">
-    <div class="w-full max-w-[400px]">
-
-      <!-- Mobile logo -->
-      <div class="flex items-center gap-2 mb-8 lg:hidden">
-        <div class="w-8 h-8 bg-[#5C7A6B] rounded-lg flex items-center justify-center">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2C8 2 5 5 5 8c0 2 .5 3.5 1 5l1.5 7c.3 1.2 1.4 2 2.5 2s2.2-.8 2.5-2l.5-2 .5 2c.3 1.2 1.4 2 2.5 2s2.2-.8 2.5-2L20 13c.5-1.5 1-3 1-5 0-3-3-6-9-6z" fill="white"/>
-          </svg>
-        </div>
-        <span class="font-semibold text-[#1A1F1C]">DentalOS</span>
-      </div>
-
-      <div class="form-card p-8">
-        <!-- Header -->
-        <div class="mb-7">
-          <h1 class="text-[22px] font-semibold text-[#1A1F1C] tracking-tight mb-1">Bienvenido de vuelta</h1>
-          <p class="text-[13px] text-[#6B7570]">Ingresa a tu cuenta para continuar</p>
-        </div>
-
-        <!-- Error alert -->
-        <div class="error-alert mb-5" id="errorAlert">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          <span id="errorMsg">Correo o contraseña incorrectos. Intenta nuevamente.</span>
-        </div>
-
-        <!-- Form -->
-        <form id="loginForm" novalidate>
-          <!-- Email -->
-          <div class="mb-4">
-            <label class="field-label" for="email">Correo electrónico</label>
-            <input class="field-input" id="email" type="email" placeholder="doctor@clinica.com" autocomplete="email"/>
-          </div>
-
-          <!-- Password -->
-          <div class="mb-5">
-            <div class="flex justify-between items-center mb-[6px]">
-              <label class="field-label" for="password" style="margin-bottom:0">Contraseña</label>
-              <a href="#" class="text-[11px] text-[#5C7A6B] hover:underline font-medium">¿Olvidaste tu contraseña?</a>
+        <div class="relative z-10 flex w-full flex-col justify-between p-10 xl:p-12">
+          <div class="flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-dental-500 text-white shadow-lg shadow-dental-500/20">
+              <svg viewBox="0 0 24 24" class="h-6 w-6 fill-current" aria-hidden="true">
+                <path d="M12 2C7.9 2 5 5.14 5 8.54c0 2.3.48 4 1.1 5.82l1.96 6.22c.44 1.4 1.71 2.42 3.16 2.42 1.23 0 2.33-.73 2.86-1.86.53 1.13 1.63 1.86 2.86 1.86 1.45 0 2.72-1.02 3.16-2.42l1.96-6.22c.62-1.82 1.1-3.52 1.1-5.82C19 5.14 16.1 2 12 2z"></path>
+              </svg>
             </div>
-            <div class="input-wrapper">
-              <input class="field-input pr-10" id="password" type="password" placeholder="••••••••" autocomplete="current-password"/>
-              <span class="toggle-password" id="togglePwd" onclick="togglePassword()">Ver</span>
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.26em] text-dental-700/70">DentalOS</p>
+              <p class="text-sm text-slate-500">Gestión clínica dental</p>
             </div>
           </div>
 
-          <!-- Submit -->
-          <button type="submit" class="btn-primary" id="submitBtn">
-            Ingresar
-          </button>
-        </form>
-      </div>
+          <div class="grid gap-10">
+            <div class="max-w-md">
+              <span class="mb-4 inline-flex rounded-full bg-white px-4 py-1.5 text-sm font-medium text-dental-700 shadow-sm ring-1 ring-dental-100">
+                Plataforma SaaS para clínicas
+              </span>
+              <h1 class="text-4xl font-extrabold leading-tight text-slate-900 xl:text-5xl">
+                Opera tu clínica con orden, velocidad y una experiencia premium.
+              </h1>
+              <p class="mt-5 max-w-md text-base leading-7 text-slate-600">
+                Centraliza agenda, pacientes, historias clínicas y cobros en una sola plataforma diseñada para equipos odontológicos modernos.
+              </p>
+            </div>
 
-      <!-- Footer note -->
-      <p class="text-center text-[11px] text-[#B0BDB7] mt-6">
-        ¿Necesitas ayuda? Escríbenos a
-        <a href="mailto:soporte@dentalos.pe" class="text-[#5C7A6B] hover:underline">soporte@dentalos.pe</a>
-      </p>
+            <div class="mx-auto flex w-full max-w-[430px] items-center justify-center">
+              <svg viewBox="0 0 520 380" class="w-full max-w-[430px]" aria-hidden="true">
+                <defs>
+                  <linearGradient id="cardFill" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff"></stop>
+                    <stop offset="100%" stop-color="#eef9f4"></stop>
+                  </linearGradient>
+                </defs>
+                <circle cx="110" cy="132" r="52" fill="#1f8f69" opacity="0.14"></circle>
+                <circle cx="390" cy="106" r="34" fill="#1f8f69" opacity="0.10"></circle>
+                <rect x="88" y="88" width="98" height="34" rx="8" fill="none" stroke="#9fd7c0" stroke-width="2" stroke-dasharray="6 6"></rect>
+                <circle cx="104" cy="105" r="6" fill="#bedfcc"></circle>
+                <circle cx="124" cy="105" r="6" fill="#bedfcc"></circle>
+                <circle cx="144" cy="105" r="6" fill="#bedfcc"></circle>
+                <circle cx="164" cy="105" r="6" fill="#bedfcc"></circle>
+
+                <path d="M115 252c18-10 33-31 35-62 2-29-5-56-21-71-10-10-25-11-38-4-26 14-38 57-27 95 9 30 30 51 51 42z" fill="#1f8f69"></path>
+                <circle cx="118" cy="142" r="16" fill="#ffffff" stroke="#1f8f69" stroke-width="3"></circle>
+                <path d="M107 145c1-10 18-13 22-3" fill="none" stroke="#1f8f69" stroke-width="3" stroke-linecap="round"></path>
+                <path d="M100 165l18 24m18 4-18-24" stroke="#d1e9dd" stroke-width="4" stroke-linecap="round"></path>
+
+                <rect x="152" y="138" width="190" height="135" rx="18" fill="url(#cardFill)" stroke="#d6efe3" stroke-width="3"></rect>
+                <rect x="174" y="168" width="146" height="20" rx="10" fill="#d9efe4"></rect>
+                <rect x="174" y="200" width="132" height="18" rx="9" fill="#ebf7f1"></rect>
+                <rect x="174" y="226" width="116" height="18" rx="9" fill="#ebf7f1"></rect>
+                <rect x="196" y="255" width="82" height="18" rx="9" fill="#1f8f69"></rect>
+
+                <circle cx="346" cy="196" r="36" fill="#ffffff" stroke="#9fd7c0" stroke-width="3"></circle>
+                <rect x="334" y="190" width="24" height="18" rx="4" fill="#1f8f69"></rect>
+                <path d="M339 188v-9a7 7 0 0 1 14 0v9" fill="none" stroke="#1f8f69" stroke-width="3" stroke-linecap="round"></path>
+
+                <path d="M86 293h285" stroke="#aacdbc" stroke-width="2"></path>
+                <path d="M370 282c-12 0-22 8-25 19-3-11-13-19-25-19 7 7 10 14 11 20-8-3-17-2-24 3 18 1 30 10 38 21 8-11 20-20 38-21-7-5-16-6-24-3 1-6 4-13 11-20z" fill="#1f8f69"></path>
+                <rect x="347" y="302" width="52" height="10" rx="5" fill="#1f8f69"></rect>
+
+                <circle cx="236" cy="115" r="16" fill="#1f8f69"></circle>
+                <path d="M236 106v18m-9-9h18" stroke="#ffffff" stroke-width="3" stroke-linecap="round"></path>
+                <path d="M256 132c16-14 38-14 54 0m-174 8c-18 20-18 48 0 68m194-90c19 17 23 46 9 67" fill="none" stroke="#9fd7c0" stroke-width="2.5" stroke-dasharray="6 6" stroke-linecap="round"></path>
+                <circle cx="310" cy="138" r="28" fill="none" stroke="#9fd7c0" stroke-width="2.5"></circle>
+                <path d="M304 141l8-8m-3 3h7v7" fill="none" stroke="#1f8f69" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+              <div class="rounded-2xl bg-white/90 p-4 shadow-sm ring-1 ring-dental-100">
+                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Agenda</p>
+                <p class="mt-3 text-2xl font-bold text-slate-900">+24%</p>
+                <p class="mt-1 text-sm text-slate-500">Más citas confirmadas</p>
+              </div>
+              <div class="rounded-2xl bg-white/90 p-4 shadow-sm ring-1 ring-dental-100">
+                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Pacientes</p>
+                <p class="mt-3 text-2xl font-bold text-slate-900">1,280</p>
+                <p class="mt-1 text-sm text-slate-500">Historias centralizadas</p>
+              </div>
+              <div class="rounded-2xl bg-white/90 p-4 shadow-sm ring-1 ring-dental-100">
+                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Cobranza</p>
+                <p class="mt-3 text-2xl font-bold text-slate-900">98%</p>
+                <p class="mt-1 text-sm text-slate-500">Pagos al día</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="relative flex min-h-[680px] items-center justify-center bg-white px-6 py-10 sm:px-10 lg:px-12">
+        <div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-dental-50/80 to-transparent"></div>
+
+        <div class="relative z-10 w-full max-w-md">
+          <div class="mb-8 lg:hidden">
+            <div class="mb-6 flex items-center gap-3">
+              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-dental-500 text-white shadow-lg shadow-dental-500/20">
+                <svg viewBox="0 0 24 24" class="h-6 w-6 fill-current" aria-hidden="true">
+                  <path d="M12 2C7.9 2 5 5.14 5 8.54c0 2.3.48 4 1.1 5.82l1.96 6.22c.44 1.4 1.71 2.42 3.16 2.42 1.23 0 2.33-.73 2.86-1.86.53 1.13 1.63 1.86 2.86 1.86 1.45 0 2.72-1.02 3.16-2.42l1.96-6.22c.62-1.82 1.1-3.52 1.1-5.82C19 5.14 16.1 2 12 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-dental-700">DentalOS</p>
+                <p class="text-sm text-slate-500">Sistema de gestión dental</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-8">
+            <span class="inline-flex rounded-full bg-dental-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-dental-700 ring-1 ring-dental-100">
+              Bienvenido
+            </span>
+            <h2 class="mt-5 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+              Inicia sesión en tu cuenta
+            </h2>
+            <p class="mt-3 text-base leading-7 text-slate-500">
+              Accede a tu panel DentalOS para gestionar citas, pacientes y operaciones de tu clínica.
+            </p>
+          </div>
+
+          <div
+            id="errorAlert"
+            class="mb-6 hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+            role="alert"
+          >
+            Completa ambos campos para continuar.
+          </div>
+
+          <form id="loginForm" class="space-y-5" novalidate>
+            <div>
+              <label for="email" class="mb-2 block text-sm font-semibold text-slate-700">
+                Correo electrónico
+              </label>
+              <div class="group flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 transition focus-within:border-dental-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-dental-100">
+                <svg viewBox="0 0 24 24" class="h-5 w-5 flex-none text-slate-400 group-focus-within:text-dental-600" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path d="M4 7h16v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z"></path>
+                  <path d="M4 8l8 6 8-6"></path>
+                </svg>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="doctor@dentalos.pe"
+                  class="h-14 w-full border-0 bg-transparent px-3 text-[15px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0"
+                />
+              </div>
+            </div>
+
+            <div>
+              <div class="mb-2 flex items-center justify-between gap-4">
+                <label for="password" class="block text-sm font-semibold text-slate-700">
+                  Contraseña
+                </label>
+                <a href="#" class="text-sm font-medium text-dental-700 transition hover:text-dental-800">
+                  ¿Olvidaste tu contraseña?
+                </a>
+              </div>
+              <div class="group flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 transition focus-within:border-dental-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-dental-100">
+                <svg viewBox="0 0 24 24" class="h-5 w-5 flex-none text-slate-400 group-focus-within:text-dental-600" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <rect x="5" y="10" width="14" height="10" rx="2"></rect>
+                  <path d="M8 10V8a4 4 0 1 1 8 0v2"></path>
+                </svg>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="Ingresa tu contraseña"
+                  class="h-14 w-full border-0 bg-transparent px-3 text-[15px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0"
+                />
+                <button
+                  id="togglePassword"
+                  type="button"
+                  class="text-sm font-semibold text-slate-500 transition hover:text-dental-700"
+                  aria-label="Mostrar u ocultar contraseña"
+                >
+                  Ver
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-4 pt-1">
+              <label class="flex items-center gap-3 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-slate-300 text-dental-600 focus:ring-dental-200"
+                />
+                Recordarme en este equipo
+              </label>
+            </div>
+
+            <button
+              id="submitButton"
+              type="submit"
+              class="inline-flex h-14 w-full items-center justify-center rounded-2xl bg-dental-500 px-6 text-base font-semibold text-white shadow-lg shadow-dental-500/25 transition hover:bg-dental-600 focus:outline-none focus:ring-4 focus:ring-dental-200"
+            >
+              Ingresar a DentalOS
+            </button>
+          </form>
+
+          <div class="mt-8 grid gap-4 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 sm:grid-cols-2">
+            <div>
+              <p class="text-sm font-semibold text-slate-800">Acceso rápido</p>
+              <p class="mt-1 text-sm leading-6 text-slate-500">
+                Interfaz optimizada para clínicas con operación diaria intensa.
+              </p>
+            </div>
+            <div class="sm:text-right">
+              <p class="text-sm font-semibold text-slate-800">Soporte</p>
+              <a href="mailto:soporte@dentalos.pe" class="mt-1 inline-block text-sm text-dental-700 hover:text-dental-800">
+                soporte@dentalos.pe
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
   <script>
-    // Toggle password visibility
-    function togglePassword() {
-      const input = document.getElementById('password');
-      const btn = document.getElementById('togglePwd');
-      if (input.type === 'password') {
-        input.type = 'text';
-        btn.textContent = 'Ocultar';
-      } else {
-        input.type = 'password';
-        btn.textContent = 'Ver';
-      }
-    }
+    const loginForm = document.getElementById("loginForm");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const errorAlert = document.getElementById("errorAlert");
+    const submitButton = document.getElementById("submitButton");
+    const togglePasswordButton = document.getElementById("togglePassword");
 
-    // Form submit simulation
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const alert = document.getElementById('errorAlert');
-      const btn = document.getElementById('submitBtn');
+    togglePasswordButton.addEventListener("click", function () {
+      const isPassword = passwordInput.type === "password";
+      passwordInput.type = isPassword ? "text" : "password";
+      togglePasswordButton.textContent = isPassword ? "Ocultar" : "Ver";
+    });
 
-      // Clear errors
-      alert.classList.remove('show');
-      document.getElementById('email').classList.remove('error');
-      document.getElementById('password').classList.remove('error');
+    loginForm.addEventListener("submit", function (event) {
+      event.preventDefault();
 
-      if (!email || !password) {
-        document.getElementById('errorMsg').textContent = 'Por favor completa todos los campos.';
-        alert.classList.add('show');
-        if (!email) document.getElementById('email').classList.add('error');
-        if (!password) document.getElementById('password').classList.add('error');
-        return;
-      }
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      const isValid = email !== "" && password !== "";
 
-      // Simulate loading
-      btn.textContent = 'Verificando...';
-      btn.disabled = true;
-      btn.style.opacity = '0.7';
+      errorAlert.classList.toggle("hidden", isValid);
+      emailInput.parentElement.classList.toggle("border-rose-300", !email);
+      passwordInput.parentElement.classList.toggle("border-rose-300", !password);
+      emailInput.parentElement.classList.toggle("bg-rose-50", !email);
+      passwordInput.parentElement.classList.toggle("bg-rose-50", !password);
 
-      setTimeout(() => {
-        // Demo: redirect to dashboard on any credentials
-        window.location.href = 'dashboard.html';
-        // Uncomment to simulate error instead:
-        // alert.classList.add('show');
-        // document.getElementById('errorMsg').textContent = 'Correo o contraseña incorrectos.';
-        // document.getElementById('email').classList.add('error');
-        // document.getElementById('password').classList.add('error');
-        // btn.textContent = 'Ingresar';
-        // btn.disabled = false;
-        // btn.style.opacity = '1';
-      }, 1200);
+      if (!isValid) return;
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Ingresando...";
+
+      setTimeout(function () {
+        window.location.href = "dashboard.html";
+      }, 900);
     });
   </script>
 </body>
