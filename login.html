@@ -26,12 +26,22 @@
       --error: #C0392B;
       --error-bg: #FDF0EF;
     }
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* Make html+body fill the full viewport so panels can stretch */
+    html { height: 100%; }
+
     body {
       font-family: 'DM Sans', sans-serif;
       background: #F5F7F5;
+      /* Both min-height AND height so flex children can inherit height */
       min-height: 100vh;
+      height: 100vh;
+      /* Row layout with panels stretching to fill full height */
       display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      overflow: hidden; /* prevent double scrollbar on short viewports */
     }
 
     /* Decorative left panel */
@@ -42,6 +52,11 @@
         radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 50%);
       position: relative;
       overflow: hidden;
+      /* Take exactly half the viewport width and full height */
+      width: 50%;
+      flex-shrink: 0;
+      flex-grow: 0;
+      min-height: 100%;
     }
     .left-panel::before {
       content: '';
@@ -175,12 +190,24 @@
 
     /* Quote text on left */
     .quote-font { font-family: 'Fraunces', serif; }
+
+    /* Right panel: fills remaining space, scrolls if content is taller than viewport */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+      overflow-y: auto;
+      /* Minimum height so items-center works on very short viewports */
+      min-height: 100%;
+    }
   </style>
 </head>
 <body>
 
   <!-- LEFT DECORATIVE PANEL (hidden on small screens) -->
-  <div class="left-panel hidden lg:flex flex-col justify-between p-12 w-[42%] flex-shrink-0">
+  <div class="left-panel hidden lg:flex flex-col justify-between p-12">
     <!-- Logo -->
     <div class="flex items-center gap-3 z-10 relative">
       <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
@@ -232,7 +259,7 @@
   </div>
 
   <!-- RIGHT — LOGIN FORM -->
-  <div class="flex-1 flex items-center justify-center p-6">
+  <div class="right-panel">
     <div class="w-full max-w-[400px]">
 
       <!-- Mobile logo -->
